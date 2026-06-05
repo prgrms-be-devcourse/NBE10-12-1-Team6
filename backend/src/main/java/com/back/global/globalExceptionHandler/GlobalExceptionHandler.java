@@ -60,4 +60,15 @@ public class GlobalExceptionHandler {
                 BAD_REQUEST
         );
     }
+
+    @ExceptionHandler(EmailNotValidException.class)
+    public ResponseEntity<RsData<Void>> handle(EmailNotValidException ex) {
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "400-1",
+                        ex.getMessage()
+                ),
+                BAD_REQUEST
+        );
+    }
 }
