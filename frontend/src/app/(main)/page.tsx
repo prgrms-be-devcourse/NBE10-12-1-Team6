@@ -1,18 +1,12 @@
 import Link from "next/link";
+import Footer from "../../../component/Footer";
+import { formatPrice } from "@/lib/format";
 import { getProducts, type Product } from "../api";
 
 export const dynamic = "force-dynamic";
 
 const heroImage =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuDWCJ97nc2t7UfrdZhpZaUFu9QzDt4caaEVq7u6oAcMIK-QGku3c-B_F7rfwjmxkNwbPrrFip3xJNUYcLE3A2QuSTiiJM45ozQIF_SLDwWmJ19DBfBhPByh4X_8C4lCEnlPMGCL-qjtC39mkJBcA4qEvfntM_WX-RQ20KZGQ_CcNwKBTGV4A5gpcOm7ny3NXRI_2Lkm_pRvCPoUfmxvBC4zJjV8HY-ZlK234AbLQhAc5K_oR4aA9BVUwnHr_9p4KXJRImdPQTRdRpw";
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("ko-KR", {
-    style: "currency",
-    currency: "KRW",
-    maximumFractionDigits: 0,
-  }).format(price);
-}
 
 function getRandomProducts(products: Product[]) {
   return [...products].sort(() => Math.random() - 0.5).slice(0, 3);
@@ -129,21 +123,7 @@ export default async function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-[#d2c3bf]/40 bg-[#e3e2df] px-5 py-12 md:px-16">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 md:flex-row">
-          <div>
-            <p className="font-bold text-[#130805]">Artisan Coffee</p>
-            <p className="mt-2 text-sm text-[#4f4542]">
-              Fresh roasted coffee for everyday rituals.
-            </p>
-          </div>
-          <div className="flex gap-6 text-sm font-medium text-[#4f4542]">
-            <span>이용약관</span>
-            <span>개인정보처리방침</span>
-            <span>고객센터</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }

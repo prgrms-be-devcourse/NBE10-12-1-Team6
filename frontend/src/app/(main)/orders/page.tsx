@@ -1,35 +1,11 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import Footer from "../../../../component/Footer";
+import { formatDate, formatPrice } from "@/lib/format";
 import { getOrders, type Order } from "../../api";
 
 const PAGE_SIZE = 5;
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("ko-KR", {
-    style: "currency",
-    currency: "KRW",
-    maximumFractionDigits: 0,
-  }).format(price);
-}
-
-function formatDate(date: string) {
-  if (!date) {
-    return "-";
-  }
-
-  const parsedDate = new Date(date);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return date;
-  }
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(parsedDate);
-}
 
 function getOrderTitle(order: Order) {
   const [firstItem, ...restItems] = order.orderItems ?? [];
@@ -269,21 +245,7 @@ export default function OrdersPage() {
         </section>
       </main>
 
-      <footer className="border-t border-[#d2c3bf]/40 bg-[#e3e2df] px-5 py-12 md:px-16">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 md:flex-row">
-          <div>
-            <p className="font-bold text-[#130805]">Team6</p>
-            <p className="mt-2 text-sm text-[#4f4542]">
-              Fresh roasted coffee for everyday rituals.
-            </p>
-          </div>
-          <div className="flex gap-6 text-sm font-medium text-[#4f4542]">
-            <span>이용약관</span>
-            <span>개인정보처리방침</span>
-            <span>고객센터</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }

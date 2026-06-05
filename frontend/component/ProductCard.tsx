@@ -2,15 +2,8 @@
 
 import Link from "next/link";
 import type { Product } from "@/app/api";
-import { useCartStore } from "../stores/cartstore";
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("ko-KR", {
-    style: "currency",
-    currency: "KRW",
-    maximumFractionDigits: 0,
-  }).format(price);
-}
+import { formatPrice } from "@/lib/format";
+import { useCartStore } from "@/stores/cartStore";
 
 type ProductCardProps = {
   product: Product;

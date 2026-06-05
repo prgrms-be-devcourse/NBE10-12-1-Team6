@@ -1,3 +1,16 @@
-export default function ProductDetailPage() {
-  return <main className="p-10 text-2xl font-semibold">상품 상세 페이지</main>;
+import ProductDetailView from "../../../../../component/ProductDetailView";
+import { getProduct } from "../../../api";
+
+export const dynamic = "force-dynamic";
+
+export default async function ProductDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const productId = Number(id);
+  const product = Number.isFinite(productId) ? await getProduct(productId) : null;
+
+  return <ProductDetailView product={product} />;
 }

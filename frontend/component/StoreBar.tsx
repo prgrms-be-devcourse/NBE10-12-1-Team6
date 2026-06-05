@@ -2,16 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useCartStore } from "../stores/cartstore";
+import { useCartStore } from "@/stores/cartStore";
 
 const HIDE_DELAY = Number(
   process.env.NEXT_PUBLIC_STORE_BAR_HIDE_DELAY_MS || 3600,
 );
-
-type CartItem = {
-  productId: number;
-  quantity: number;
-};
 
 export default function StoreBar() {
   const [isVisible, setIsVisible] = useState(false);
@@ -19,10 +14,7 @@ export default function StoreBar() {
   const didMount = useRef(false);
   const lastAddedAt = useCartStore((state) => state.lastAddedAt);
   const totalQuantity = useCartStore((state) =>
-    (state.items as CartItem[]).reduce(
-      (total: number, item: CartItem) => total + item.quantity,
-      0,
-    ),
+    state.items.reduce((total, item) => total + item.quantity, 0),
   );
 
   useEffect(() => {

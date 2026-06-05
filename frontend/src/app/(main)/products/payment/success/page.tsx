@@ -2,56 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { Order } from "../../../../api";
-import { useCartStore } from "../../../../../../stores/cartstore";
-
-type BackendOrderResponse = {
-  data?: unknown;
-  order?: unknown;
-  result?: unknown;
-};
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("ko-KR", {
-    style: "currency",
-    currency: "KRW",
-    maximumFractionDigits: 0,
-  }).format(price);
-}
-
-function isOrder(value: unknown): value is Order {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "id" in value &&
-    "email" in value
-  );
-}
-
-function extractOrder(response: unknown): Order | null {
-  if (isOrder(response)) {
-    return response;
-  }
-
-  if (typeof response !== "object" || response === null) {
-    return null;
-  }
-
-  const backendResponse = response as BackendOrderResponse;
-  const candidates = [
-    backendResponse.data,
-    backendResponse.order,
-    backendResponse.result,
-  ];
-
-  for (const candidate of candidates) {
-    if (isOrder(candidate)) {
-      return candidate;
-    }
-  }
-
-  return null;
-}
+import Footer from "../../../../../../component/Footer";
+import { formatPrice } from "@/lib/format";
+import { extractOrder } from "@/lib/orderResponse";
+import { useCartStore } from "@/stores/cartStore";
+import type { Order } from "@/types/order";
 
 export default function PaymentSuccessPage() {
   const clearCartItems = useCartStore((state) => state.clearCartItems);
@@ -128,9 +83,9 @@ export default function PaymentSuccessPage() {
               </h2>
               {orderItems.length > 0 ? (
                 <div className="divide-y divide-[#d2c3bf]/40 overflow-hidden rounded-lg border border-[#d2c3bf]/40 bg-white">
-                  {orderItems.map((item) => (
+                  {orderItems.map((item, index) => (
                     <div
-                      key={item.id}
+                      key={`${item.id ?? "order-item"}-${item.productId}-${index}`}
                       className="grid grid-cols-[1fr_auto] gap-4 p-4"
                     >
                       <div>
@@ -185,21 +140,7 @@ export default function PaymentSuccessPage() {
         </section>
       </main>
 
-      <footer className="border-t border-[#d2c3bf]/40 bg-[#e3e2df] px-5 py-12 md:px-16">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 md:flex-row">
-          <div>
-            <p className="font-bold text-[#130805]">Team6</p>
-            <p className="mt-2 text-sm text-[#4f4542]">
-              Fresh roasted coffee for everyday rituals.
-            </p>
-          </div>
-          <div className="flex gap-6 text-sm font-medium text-[#4f4542]">
-            <span>이용약관</span>
-            <span>개인정보처리방침</span>
-            <span>고객센터</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }
