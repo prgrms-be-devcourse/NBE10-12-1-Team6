@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { Product } from "@/app/api";
-import { addCartItem } from "../stores/cartstore";
+import { useCartStore } from "../stores/cartstore";
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("ko-KR", {
@@ -18,9 +18,10 @@ type ProductCardProps = {
 };
 
 export default function ProductCard({ product, badge }: ProductCardProps) {
+  const addCartItem = useCartStore((state) => state.addCartItem);
+
   const handleAddCart = () => {
     addCartItem({ productId: product.id, quantity: 1 });
-    window.alert("장바구니에 상품을 담았습니다.");
   };
 
   return (

@@ -1,68 +1,89 @@
-const CART_STORAGE_KEY = "cart-items";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
-function readCartItems() {
-  if (typeof window === "undefined") {
-    return [];
-  }
+const CART_STORAGE_KEY =
+  process.env.NEXT_PUBLIC_CART_STORAGE_KEY || "cart-items";
 
-  try {
-    const storedItems = window.localStorage.getItem(CART_STORAGE_KEY);
-    return storedItems ? JSON.parse(storedItems) : [];
-  } catch {
-    return [];
-  }
-}
+export const useCartStore = create(
+  persist(
+    (set, get) => ({
+      items: [],
+      lastAddedAt: 0,
 
-function writeCartItems(items) {
-  if (typeof window === "undefined") {
-    return;
-  }
+      addCartItem: ({ productId, quantity = 1 }) => {
+        set((state) => {
+          const existingItem = state.items.find(
+            (item) => item.productId === productId,
+          );
 
-  window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-  window.dispatchEvent(new Event("cart-items-change"));
-}
+          const items = existingItem
+            ? state.items.map((item) =>
+                item.productId === productId
+                  ? { ...item, quantity: item.quantity + quantity }
+                  : item,
+              )
+            : [...state.items, { productId, quantity }];
+
+          return {
+            items,
+            lastAddedAt: Date.now(),
+          };
+        });
+
+        return get().items;
+      },
+
+      updateCartItem: (productId, quantity) => {
+        set((state) => ({
+          items:
+            quantity <= 0
+              ? state.items.filter((item) => item.productId !== productId)
+              : state.items.map((item) =>
+                  item.productId === productId ? { ...item, quantity } : item,
+                ),
+        }));
+
+        return get().items;
+      },
+
+      removeCartItem: (productId) => {
+        set((state) => ({
+          items: state.items.filter((item) => item.productId !== productId),
+        }));
+
+        return get().items;
+      },
+
+      clearCartItems: () => {
+        set({ items: [] });
+      },
+
+      getCartItems: () => get().items,
+    }),
+    {
+      name: CART_STORAGE_KEY,
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ items: state.items }),
+    },
+  ),
+);
 
 export function getCartItems() {
-  return readCartItems();
+  return useCartStore.getState().getCartItems();
 }
 
-export function addCartItem({ productId, quantity = 1 }) {
-  const cartItems = readCartItems();
-  const existingItem = cartItems.find((item) => item.productId === productId);
-
-  if (existingItem) {
-    const nextItems = cartItems.map((item) =>
-      item.productId === productId
-        ? { ...item, quantity: item.quantity + quantity }
-        : item,
-    );
-    writeCartItems(nextItems);
-    return nextItems;
-  }
-
-  const nextItems = [...cartItems, { productId, quantity }];
-  writeCartItems(nextItems);
-  return nextItems;
+export function addCartItem(item) {
+  return useCartStore.getState().addCartItem(item);
 }
 
 export function updateCartItem(productId, quantity) {
-  const nextItems =
-    quantity <= 0
-      ? readCartItems().filter((item) => item.productId !== productId)
-      : readCartItems().map((item) =>
-          item.productId === productId ? { ...item, quantity } : item,
-        );
-
-  writeCartItems(nextItems);
-  return nextItems;
+  return useCartStore.getState().updateCartItem(productId, quantity);
 }
 
 export function removeCartItem(productId) {
-  const nextItems = readCartItems().filter((item) => item.productId !== productId);
-  writeCartItems(nextItems);
-  return nextItems;
+  return useCartStore.getState().removeCartItem(productId);
 }
 
 export function clearCartItems() {
-  writeCartItems([]);
+  return useCartStore.getState().clearCartItems();
 }

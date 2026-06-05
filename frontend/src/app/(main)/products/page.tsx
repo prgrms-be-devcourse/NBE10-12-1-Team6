@@ -16,7 +16,7 @@ export default async function ProductsPage() {
             Coffee Selection
           </p>
           <h1 className="text-4xl font-bold leading-tight text-[#130805] md:text-5xl">
-            커피 탐험하기
+            상품 목록
           </h1>
           <p className="mt-4 max-w-2xl text-lg leading-8 text-[#4f4542]">
             장인 정신으로 로스팅된 전 세계의 특별한 원두를 만나보세요.

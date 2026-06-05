@@ -6,6 +6,40 @@ export type Product = {
   imageUrl: string;
 };
 
+export type OrderItemRequest = {
+  productId: number;
+  quantity: number;
+};
+
+export type CreateOrderRequest = {
+  email: string;
+  zipCode: string;
+  address1: string;
+  address2: string;
+  orderItems: OrderItemRequest[];
+};
+
+export type OrderItem = {
+  id: number;
+  productId: number;
+  productName: string;
+  productPrice: number;
+  quantity: number;
+};
+
+export type Order = {
+  id: number;
+  createDate: string;
+  modifyDate: string;
+  email: string;
+  zipCode: string;
+  address1: string;
+  address2: string;
+  status: string;
+  price: number;
+  orderItems: OrderItem[];
+};
+
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 
@@ -50,4 +84,20 @@ export async function getProducts(): Promise<Product[]> {
   } catch {
     return fallbackProducts;
   }
+}
+
+export async function createOrder(order: CreateOrderRequest): Promise<Order> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/orders`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(order),
+  });
+
+  if (!response.ok) {
+    throw new Error("주문 생성에 실패했습니다.");
+  }
+
+  return (await response.json()) as Order;
 }
