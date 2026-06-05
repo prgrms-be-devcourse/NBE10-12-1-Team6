@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
@@ -44,5 +46,24 @@ public class ApiV1ProductController {
                 "%d번 상품이 등록되었습니다.".formatted(product.getId()),
                 new ProductDto(product)
         );
+    }
+
+    @GetMapping
+    @Transactional(readOnly = true)
+    public List<ProductDto> getItems() {
+        List<Product> items = productService.findAll();
+
+        return items
+                .stream()
+                .map(ProductDto::new)
+                .toList();
+    }
+
+    @GetMapping("/{id}")
+    @Transactional(readOnly = true)
+    public ProductDto getItem(@PathVariable int id) {
+        Product product = productService.findById(id).get();
+
+        return new ProductDto(product);
     }
 }
