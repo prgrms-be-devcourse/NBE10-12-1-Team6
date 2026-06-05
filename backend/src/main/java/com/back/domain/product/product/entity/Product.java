@@ -15,6 +15,7 @@ public class Product extends BaseEntity {
     private int price;
     @Column(columnDefinition = "TEXT")
     private String description;
+    @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
     public Product(String name, int price, String description, String imageUrl) {
