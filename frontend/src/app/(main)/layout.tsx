@@ -30,6 +30,10 @@ function isActivePath(pathname: string, href: string) {
     return pathname === "/";
   }
 
+  if (href === "/orders") {
+    return pathname.startsWith("/orders");
+  }
+
   if (href === "/products/payment") {
     return pathname.startsWith("/products/payment");
   }
@@ -46,6 +50,7 @@ export default function MainLayout({
   const isHomeActive = isActivePath(pathname, "/");
   const isProductsActive = isActivePath(pathname, "/products");
   const isCartActive = isActivePath(pathname, "/products/payment");
+  const isOrdersActive = isActivePath(pathname, "/orders");
 
   return (
     <>
@@ -85,6 +90,13 @@ export default function MainLayout({
             >
               장바구니
               <NavUnderline isActive={isCartActive} />
+            </Link>
+            <Link
+              href="/orders"
+              className={getNavLinkClass(isOrdersActive)}
+            >
+              주문 목록
+              <NavUnderline isActive={isOrdersActive} />
             </Link>
           </div>
         </nav>

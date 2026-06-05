@@ -251,7 +251,7 @@ export default function PaymentPage() {
                 배송 정보
               </h2>
 
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 gap-6">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <label className="space-y-2">
                     <span className="block text-sm font-semibold text-[#4f4542]">
@@ -260,7 +260,7 @@ export default function PaymentPage() {
                     <input
                       value={form.recipientName}
                       onChange={handleChange("recipientName")}
-                      className="w-full rounded-lg border border-[#d2c3bf] bg-[#faf9f5] px-4 py-3 outline-none transition-all focus:border-[#7d562d] focus:ring-2 focus:ring-[#ffca98]"
+                      className="h-12 w-full rounded-lg border border-[#d2c3bf] bg-[#faf9f5] px-4 outline-none transition-all focus:border-[#7d562d] focus:ring-2 focus:ring-[#ffca98]"
                       placeholder="이름을 입력하세요"
                       type="text"
                     />
@@ -272,7 +272,7 @@ export default function PaymentPage() {
                     <input
                       value={form.phone}
                       onChange={handleChange("phone")}
-                      className="w-full rounded-lg border border-[#d2c3bf] bg-[#faf9f5] px-4 py-3 outline-none transition-all focus:border-[#7d562d] focus:ring-2 focus:ring-[#ffca98]"
+                      className="h-12 w-full rounded-lg border border-[#d2c3bf] bg-[#faf9f5] px-4 outline-none transition-all focus:border-[#7d562d] focus:ring-2 focus:ring-[#ffca98]"
                       placeholder="010-0000-0000"
                       type="tel"
                     />
@@ -286,13 +286,13 @@ export default function PaymentPage() {
                   <input
                     value={form.email}
                     onChange={handleChange("email")}
-                    className="w-full rounded-lg border border-[#d2c3bf] bg-[#faf9f5] px-4 py-3 outline-none transition-all focus:border-[#7d562d] focus:ring-2 focus:ring-[#ffca98]"
+                    className="h-12 w-full rounded-lg border border-[#d2c3bf] bg-[#faf9f5] px-4 outline-none transition-all focus:border-[#7d562d] focus:ring-2 focus:ring-[#ffca98]"
                     placeholder="example@artisan.coffee"
                     type="email"
                   />
                 </label>
 
-                <div className="grid grid-cols-[1fr_auto] gap-3">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_auto]">
                   <label className="space-y-2">
                     <span className="block text-sm font-semibold text-[#4f4542]">
                       우편번호
@@ -300,7 +300,7 @@ export default function PaymentPage() {
                     <input
                       value={form.zipCode}
                       onChange={handleChange("zipCode")}
-                      className="w-full rounded-lg border border-[#d2c3bf] bg-[#faf9f5] px-4 py-3 outline-none transition-all focus:border-[#7d562d] focus:ring-2 focus:ring-[#ffca98]"
+                      className="h-12 w-full rounded-lg border border-[#d2c3bf] bg-[#faf9f5] px-4 outline-none transition-all focus:border-[#7d562d] focus:ring-2 focus:ring-[#ffca98]"
                       placeholder="12345"
                       type="text"
                     />
@@ -309,7 +309,7 @@ export default function PaymentPage() {
                     <button
                       type="button"
                       disabled
-                      className="rounded-lg bg-[#e3e2df] px-5 py-3 text-sm font-semibold text-[#817471]"
+                      className="h-12 rounded-lg bg-[#e3e2df] px-5 text-sm font-semibold text-[#817471]"
                     >
                       주소 찾기
                     </button>
@@ -323,7 +323,7 @@ export default function PaymentPage() {
                   <input
                     value={form.address1}
                     onChange={handleChange("address1")}
-                    className="w-full rounded-lg border border-[#d2c3bf] bg-[#faf9f5] px-4 py-3 outline-none transition-all focus:border-[#7d562d] focus:ring-2 focus:ring-[#ffca98]"
+                    className="h-12 w-full rounded-lg border border-[#d2c3bf] bg-[#faf9f5] px-4 outline-none transition-all focus:border-[#7d562d] focus:ring-2 focus:ring-[#ffca98]"
                     placeholder="주소를 입력하세요"
                     type="text"
                   />
@@ -336,7 +336,7 @@ export default function PaymentPage() {
                   <input
                     value={form.address2}
                     onChange={handleChange("address2")}
-                    className="w-full rounded-lg border border-[#d2c3bf] bg-[#faf9f5] px-4 py-3 outline-none transition-all focus:border-[#7d562d] focus:ring-2 focus:ring-[#ffca98]"
+                    className="h-12 w-full rounded-lg border border-[#d2c3bf] bg-[#faf9f5] px-4 outline-none transition-all focus:border-[#7d562d] focus:ring-2 focus:ring-[#ffca98]"
                     placeholder="나머지 주소를 입력하세요"
                     type="text"
                   />
