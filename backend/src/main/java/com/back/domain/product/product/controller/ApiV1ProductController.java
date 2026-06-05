@@ -66,4 +66,32 @@ public class ApiV1ProductController {
 
         return new ProductDto(product);
     }
+
+    public record ProductModifyReqBody(
+            @NotBlank
+            @Size(min = 2)
+            String name,
+            @Min(2)
+            int price,
+            @NotBlank
+            @Size(min = 2)
+            String description,
+            String imageUrl
+    ) {}
+
+    @PutMapping("/{id}")
+    @Transactional
+    public RsData<Void> modify(
+            @PathVariable int id,
+            @RequestBody @Valid ProductModifyReqBody reqBody
+    ) {
+        Product product = productService.findById(id).get();
+
+        productService.modify(product, reqBody.name, reqBody.price, reqBody.description, reqBody.imageUrl);
+
+        return new RsData<>(
+                "200-1",
+                "%d번 상품이 수정되었습니다.".formatted(product.getId())
+        );
+    }
 }
