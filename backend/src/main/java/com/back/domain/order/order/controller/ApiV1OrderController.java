@@ -12,12 +12,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -26,7 +28,7 @@ public class ApiV1OrderController {
 
     private final OrderService orderService;
 
-    // 1. 입력용 ReqBody (검증용 벨리데이션 포함)
+    // 1. 입력용 ReqBody
     public record OrderCreateReqBody(
             @NotBlank(message = "이메일은 필수 입력 항목입니다.")
             @Email(message = "올바른 이메일 형식이 아닙니다.")
@@ -52,14 +54,27 @@ public class ApiV1OrderController {
                 int quantity
         ) {}
     }
-    /**
-     * POST /api/v1/orders
-     * 주문을 생성하고, 결과를 출력용 OrderDto로 가공하여 RsData 규격으로 반환합니다.
-     */
+
     @PostMapping
     @Operation(summary = "주문 생성")
+    @Transactional
     public RsData<OrderDto> createOrder(@RequestBody @Valid OrderCreateReqBody reqBody) {
-        Order order = orderService.createOrder(reqBody);
+
+        // List<OrderItemReq>를 Map<Long, Integer> (상품ID : 수량) 형태로 변환합니다.
+        Map<Long, Integer> productQuantities = reqBody.orderItems().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        item -> item.productId(),
+                        item -> item.quantity()
+                ));
+
+        // 서비스 메서드 규격에 맞게 쪼개서 호출합니다.
+        Order order = orderService.createOrder(
+                reqBody.email(),
+                reqBody.address1(),
+                reqBody.address2(),
+                reqBody.zipCode(),
+                productQuantities
+        );
 
         // 결과 엔티티(Order)를 출력용 DTO(OrderDto)로 변환하여 RsData로 반환
         return new RsData<>(
