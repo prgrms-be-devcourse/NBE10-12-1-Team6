@@ -74,7 +74,7 @@ export default async function Home() {
               >
                 <div
                   className="aspect-[16/9] bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.02]"
-                  style={{ backgroundImage: `url(${featured.url})` }}
+                  style={{ backgroundImage: `url(${featured.imageUrl})` }}
                   aria-label={featured.name}
                 />
                 <div className="p-8">
@@ -84,7 +84,7 @@ export default async function Home() {
                         {featured.name}
                       </h3>
                       <p className="mt-2 leading-7 text-[#4f4542]">
-                        {featured.instruction}
+                        {featured.description}
                       </p>
                     </div>
                     <p className="text-2xl font-semibold text-[#7d562d]">
@@ -103,7 +103,7 @@ export default async function Home() {
                   >
                     <div
                       className="h-28 w-28 flex-none rounded-lg bg-cover bg-center md:h-32 md:w-32"
-                      style={{ backgroundImage: `url(${product.url})` }}
+                      style={{ backgroundImage: `url(${product.imageUrl})` }}
                       aria-label={product.name}
                     />
                     <div className="flex min-w-0 flex-col justify-center">
