@@ -4,6 +4,7 @@ import com.back.domain.order.order.entity.Order;
 import com.back.domain.order.order.entity.OrderStatus;
 import com.back.domain.order.order.repository.OrderRepository;
 import com.back.domain.order.orderitem.entity.OrderItem;
+import com.back.global.globalExceptionHandler.EmailNotValidException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -56,7 +57,7 @@ public class OrderService {
 
     public List<Order> getOrdersByEmail(String email) {
         if (checkIsNotValidEmail(email)) {
-            throw new IllegalArgumentException("잘못된 이메일 형식입니다.");
+            throw new EmailNotValidException();
         }
         return orderRepository.findByEmail(email);
     }
@@ -66,7 +67,7 @@ public class OrderService {
         LocalDateTime now = LocalDateTime.now();
 
         if (checkIsNotValidEmail(email)) {
-            throw new IllegalArgumentException("잘못된 이메일 형식입니다.");
+            throw new EmailNotValidException();
         }
 
         Optional<Order> order = orderRepository
