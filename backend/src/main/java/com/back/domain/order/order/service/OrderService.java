@@ -4,6 +4,8 @@ import com.back.domain.order.order.entity.Order;
 import com.back.domain.order.order.entity.OrderStatus;
 import com.back.domain.order.order.repository.OrderRepository;
 import com.back.domain.order.orderitem.entity.OrderItem;
+import com.back.domain.product.product.entity.Product;
+import com.back.domain.product.product.service.ProductService;
 import com.back.global.globalExceptionHandler.EmailNotValidException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,15 +13,14 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final ProductService productService;
 
     private static final LocalTime baseTime = LocalTime.of(14, 0, 0);
     private static final LocalTime endTime = baseTime.minusNanos(1);
@@ -72,7 +73,7 @@ public class OrderService {
 
         Optional<Order> order = orderRepository
                 .findByCreateDateBetweenAndEmailAndAddress1AndAddress2AndZipCode(
-                        getStartOfDate(now), getStartOfDate(now), email, address1, address2, zipCode);
+                        getStartOfDate(now), getEndOfDate(now), email, address1, address2, zipCode);
 
         Order o = order.orElseGet(() ->
                 orderRepository.save(new Order(
@@ -84,6 +85,34 @@ public class OrderService {
         }
 
         return o;
+    }
 
+    public Order createOrder(
+            String email,
+            String address1,
+            String address2,
+            String zipCode,
+            Map<Long, Integer> productQuantities
+    ) {
+        List<OrderItem> orderItems = new ArrayList<>();
+
+        for (var entry : productQuantities.entrySet()) {
+            Long productId = entry.getKey();
+            int quantity = entry.getValue();
+
+            Product product = productService.findById(productId.intValue())
+                    .orElseThrow(() -> new NoSuchElementException("존재하지 않는 상품 번호입니다: " + productId));
+
+            OrderItem orderItem = OrderItem.builder()
+                    .productId(product.getId())
+                    .productName(product.getName())
+                    .productPrice(product.getPrice())
+                    .quantity(quantity)
+                    .build();
+
+            orderItems.add(orderItem);
+        }
+
+        return addOrder(email, address1, address2, zipCode, orderItems);
     }
 }
