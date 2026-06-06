@@ -31,8 +31,14 @@ const emptyForm = {
 
 type ProductForm = typeof emptyForm;
 
-function getProductCode(productId: number) {
-  return `PRD-${String(productId).padStart(3, "0")}`;
+function getProductCode(productId: number | null | undefined) {
+  return typeof productId === "number" && Number.isFinite(productId)
+    ? `PRD-${String(productId).padStart(3, "0")}`
+    : "PRD-PENDING";
+}
+
+function getProductRowKey(product: Product, index: number) {
+  return `${product.id ?? "pending"}-${product.name}-${index}`;
 }
 
 function validateForm(form: ProductForm) {
@@ -165,14 +171,14 @@ export default function ManageProductPage() {
     setIsSubmitting(true);
 
     try {
-      const createdProduct = await createProduct({
+      await createProduct({
         name: form.name.trim(),
         price: Number(form.price),
         description: form.description.trim(),
         imageUrl: form.imageUrl.trim(),
       });
 
-      setProducts((prevProducts) => [createdProduct, ...prevProducts]);
+      await loadProducts();
       setForm(emptyForm);
       setPage(1);
       setMessage("상품이 등록되었습니다.");
@@ -396,9 +402,9 @@ export default function ManageProductPage() {
                       </td>
                     </tr>
                   ) : visibleProducts.length > 0 ? (
-                    visibleProducts.map((product) => (
+                    visibleProducts.map((product, index) => (
                       <tr
-                        key={product.id}
+                        key={getProductRowKey(product, index)}
                         className="group transition-colors hover:bg-[#f4f4f0]/70"
                       >
                         <td className="px-6 py-4">
@@ -426,6 +432,7 @@ export default function ManageProductPage() {
                           <button
                             type="button"
                             onClick={() => handleDelete(product.id)}
+                            disabled={!Number.isFinite(product.id)}
                             className="rounded-lg border border-[#d2c3bf] px-4 py-2 text-sm font-semibold text-[#93000a] transition-colors hover:border-[#ba1a1a] hover:bg-[#ffdad6]"
                           >
                             삭제

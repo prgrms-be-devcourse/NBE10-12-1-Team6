@@ -1,5 +1,5 @@
 import { fallbackProducts } from "@/data/fallbackProducts";
-import { API_BASE_URL } from "@/lib/api/client";
+import { API_BASE_URL, unwrapRsData } from "@/lib/api/client";
 import type { Product, ProductRequest } from "@/types/product";
 
 export async function getProducts(): Promise<Product[]> {
@@ -50,7 +50,7 @@ export async function createProduct(product: ProductRequest): Promise<Product> {
     throw new Error("상품 등록에 실패했습니다.");
   }
 
-  return (await response.json()) as Product;
+  return unwrapRsData<Product>(await response.json());
 }
 
 export async function deleteProduct(productId: number): Promise<void> {

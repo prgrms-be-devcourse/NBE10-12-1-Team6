@@ -1,7 +1,7 @@
-import { API_BASE_URL } from "@/lib/api/client";
+import { API_BASE_URL, unwrapRsData } from "@/lib/api/client";
 import type { CreateOrderRequest, Order } from "@/types/order";
 
-export async function createOrder(order: CreateOrderRequest): Promise<unknown> {
+export async function createOrder(order: CreateOrderRequest): Promise<Order> {
   const response = await fetch(`${API_BASE_URL}/api/v1/orders`, {
     method: "POST",
     headers: {
@@ -14,7 +14,7 @@ export async function createOrder(order: CreateOrderRequest): Promise<unknown> {
     throw new Error("주문 생성에 실패했습니다.");
   }
 
-  return await response.json();
+  return unwrapRsData<Order>(await response.json());
 }
 
 export async function getOrders(): Promise<Order[]> {

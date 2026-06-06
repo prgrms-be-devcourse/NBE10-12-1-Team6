@@ -1,10 +1,8 @@
 import Footer from "../../../../component/Footer";
-import ProductCard from "../../../../component/ProductCard";
+import ProductCatalog from "../../../../component/ProductCatalog";
 import { getProducts } from "../../api";
 
 export const dynamic = "force-dynamic";
-
-const productBadges = ["Best Seller", "New Arrival", "Limited Edition"];
 
 export default async function ProductsPage() {
   const products = await getProducts();
@@ -26,23 +24,7 @@ export default async function ProductsPage() {
           </p>
         </header>
 
-        <section className="mx-auto max-w-7xl">
-          {products.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {products.map((product, index) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  badge={index < productBadges.length ? productBadges[index] : undefined}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-xl border border-[#d2c3bf]/50 bg-[#f4f4f0] p-8 text-[#4f4542]">
-              등록된 상품이 없습니다.
-            </div>
-          )}
-        </section>
+        <ProductCatalog products={products} />
       </main>
 
       <Footer />
