@@ -5,3 +5,10 @@ export type Product = {
   description: string;
   imageUrl: string;
 };
+
+export type ProductRequest = {
+  name: string;
+  price: number;
+  description: string;
+  imageUrl: string;
+};
