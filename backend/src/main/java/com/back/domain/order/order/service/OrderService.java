@@ -128,6 +128,12 @@ public class OrderService {
     // 주문 삭제 로직
     public void deleteOrder(Long id) {
         Order order = getOrderById(id);
+
+        // 처리 완료(배송 시작) 상태인 경우 삭제 차단
+        if (order.getStatus() == OrderStatus.AFTER_PROCESSING) {
+            throw new IllegalStateException("이미 처리가 완료된 주문은 삭제할 수 없습니다.");
+        }
+
         orderRepository.delete(order);
     }
 
