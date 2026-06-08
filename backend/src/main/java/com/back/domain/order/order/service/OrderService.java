@@ -115,4 +115,16 @@ public class OrderService {
 
         return addOrder(email, address1, address2, zipCode, orderItems);
     }
+
+    // 특정 주문 단건 조회
+    public Order getOrderById(Long id) {
+        return orderRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 주문 번호입니다. ID: " + id));
+    }
+
+    // 주문 삭제 로직
+    public void deleteOrder(Long id) {
+        Order order = getOrderById(id);
+        orderRepository.delete(order);
+    }
 }

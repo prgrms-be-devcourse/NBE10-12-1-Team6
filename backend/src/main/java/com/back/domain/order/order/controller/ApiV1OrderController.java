@@ -119,4 +119,16 @@ public class ApiV1OrderController {
                 orderDtos
         );
     }
+
+    // 주문 삭제
+    @DeleteMapping("/{id}")
+    @Operation(summary = "주문 삭제")
+    @Transactional
+    public RsData<Void> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return new RsData<>(
+                "200-4",
+                "%d번 주문이 삭제되었습니다.".formatted(id)
+        );
+    }
 }
