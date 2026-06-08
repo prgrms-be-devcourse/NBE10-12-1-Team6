@@ -40,6 +40,21 @@ public class Order extends BaseEntity {
     @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
+
+    public Order(String email, String zipCode, String address1, String address2) {
+        this.email = email;
+        this.zipCode = zipCode;
+        this.address1 = address1;
+        this.address2 = address2;
+        status = OrderStatus.BEFORE_PROCESSING;
+        price = 0;
+        orderItems = new ArrayList<>();
+    }
+
+    public void changeStatus(OrderStatus status) {
+        this.status = status;
+    }
+
     /**
      * 자동 합산 및 금액 재계산을 위한 도메인 메서드
      */
