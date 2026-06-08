@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import Footer from "../../../../component/Footer";
 import { formatDate, formatPrice } from "@/lib/format";
 import { getOrders, type Order } from "../../api";
@@ -22,31 +22,17 @@ function getOrderTitle(order: Order) {
 function getStatusLabel(status: string) {
   switch (status) {
     case "BEFORE_PROCESSING":
-      return "주문 확인";
-    case "PROCESSING":
-      return "배송 준비";
-    case "SHIPPING":
-      return "배송 중";
-    case "COMPLETED":
-      return "배송 완료";
-    case "CANCELED":
-      return "주문 취소";
+      return "처리 전";
+    case "AFTER_PROCESSING":
+      return "처리 후";
     default:
       return status || "상태 없음";
   }
 }
 
 function getStatusClass(status: string) {
-  if (status === "COMPLETED") {
-    return "bg-[#1e3932]/10 text-[#1e3932]";
-  }
-
-  if (status === "SHIPPING" || status === "PROCESSING") {
+  if (status === "AFTER_PROCESSING") {
     return "bg-[#ffca98]/30 text-[#7d562d]";
-  }
-
-  if (status === "CANCELED") {
-    return "bg-[#ffdad6] text-[#93000a]";
   }
 
   return "bg-[#d2c3bf]/30 text-[#4f4542]";
@@ -57,45 +43,46 @@ export default function OrdersPage() {
   const [emailInput, setEmailInput] = useState("");
   const [searchedEmail, setSearchedEmail] = useState("");
   const [page, setPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadOrders = useCallback(async (email: string) => {
+    const normalizedEmail = email.trim();
+
+    if (!normalizedEmail) {
+      setOrders([]);
+      setSearchedEmail("");
+      return;
+    }
+
+    setIsLoading(true);
+    setSearchedEmail(normalizedEmail);
+    setOrders(await getOrders(normalizedEmail));
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
-    const loadOrders = async () => {
+    const animationId = window.requestAnimationFrame(() => {
       const searchParams = new URLSearchParams(window.location.search);
       const email = searchParams.get("email") ?? "";
 
       setEmailInput(email);
-      setSearchedEmail(email);
-      setOrders(await getOrders());
-      setIsLoading(false);
-    };
+      void loadOrders(email);
+    });
 
-    loadOrders();
-  }, []);
+    return () => window.cancelAnimationFrame(animationId);
+  }, [loadOrders]);
 
-  const filteredOrders = useMemo(() => {
-    const normalizedEmail = searchedEmail.trim().toLowerCase();
-
-    if (!normalizedEmail) {
-      return orders;
-    }
-
-    return orders.filter((order) =>
-      order.email.toLowerCase().includes(normalizedEmail),
-    );
-  }, [orders, searchedEmail]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(orders.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const visibleOrders = filteredOrders.slice(
+  const visibleOrders = orders.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSearchedEmail(emailInput);
     setPage(1);
+    void loadOrders(emailInput);
   };
 
   return (
@@ -198,7 +185,9 @@ export default function OrdersPage() {
                 ) : (
                   <tr>
                     <td colSpan={5} className="px-8 py-12 text-center text-[#4f4542]">
-                      조회된 주문 내역이 없습니다.
+                      {searchedEmail
+                        ? "조회된 주문 내역이 없습니다."
+                        : "이메일 주소를 입력하고 주문 내역을 조회해주세요."}
                     </td>
                   </tr>
                 )}

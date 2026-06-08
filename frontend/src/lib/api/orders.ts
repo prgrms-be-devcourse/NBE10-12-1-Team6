@@ -1,7 +1,30 @@
-import { API_BASE_URL } from "@/lib/api/client";
+import { fallbackOrders } from "@/data/fallbackOrders";
+import { API_BASE_URL, unwrapRsData } from "@/lib/api/client";
 import type { CreateOrderRequest, Order } from "@/types/order";
 
-export async function createOrder(order: CreateOrderRequest): Promise<unknown> {
+function getFallbackOrdersByEmail(email: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  return fallbackOrders.filter((order) =>
+    order.email.toLowerCase().includes(normalizedEmail),
+  );
+}
+
+function getFallbackAdminOrders(start: string, end: string) {
+  const startTime = new Date(start).getTime();
+  const endTime = new Date(end).getTime();
+
+  if (Number.isNaN(startTime) || Number.isNaN(endTime)) {
+    return fallbackOrders;
+  }
+
+  return fallbackOrders.filter((order) => {
+    const orderTime = new Date(order.createDate).getTime();
+    return orderTime >= startTime && orderTime <= endTime;
+  });
+}
+
+export async function createOrder(order: CreateOrderRequest): Promise<Order> {
   const response = await fetch(`${API_BASE_URL}/api/v1/orders`, {
     method: "POST",
     headers: {
@@ -14,12 +37,21 @@ export async function createOrder(order: CreateOrderRequest): Promise<unknown> {
     throw new Error("주문 생성에 실패했습니다.");
   }
 
-  return await response.json();
+  return unwrapRsData<Order>(await response.json());
 }
 
-export async function getOrders(): Promise<Order[]> {
+export async function getOrders(email: string): Promise<Order[]> {
+  const normalizedEmail = email.trim();
+
+  if (!normalizedEmail) {
+    return [];
+  }
+
   try {
-    const response = await fetch(`${API_BASE_URL}/api/v1/orders`, {
+    const params = new URLSearchParams({
+      email: normalizedEmail,
+    });
+    const response = await fetch(`${API_BASE_URL}/api/v1/orders?${params}`, {
       cache: "no-store",
     });
 
@@ -27,9 +59,48 @@ export async function getOrders(): Promise<Order[]> {
       return [];
     }
 
-    const orders = (await response.json()) as Order[];
-    return Array.isArray(orders) ? orders : [];
+    const orders = unwrapRsData<Order[]>(await response.json());
+    return Array.isArray(orders) && orders.length > 0
+      ? orders
+      : getFallbackOrdersByEmail(normalizedEmail);
   } catch {
-    return [];
+    return getFallbackOrdersByEmail(normalizedEmail);
+  }
+}
+
+export async function getAdminOrders(start: string, end: string): Promise<Order[]> {
+  try {
+    const params = new URLSearchParams({
+      start,
+      end,
+    });
+    const response = await fetch(`${API_BASE_URL}/api/v1/orders/admin?${params}`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const orders = unwrapRsData<Order[]>(await response.json());
+    return Array.isArray(orders) && orders.length > 0
+      ? orders
+      : getFallbackAdminOrders(start, end);
+  } catch {
+    return getFallbackAdminOrders(start, end);
+  }
+}
+
+export async function deleteOrder(orderId: number): Promise<void> {
+  if (fallbackOrders.some((order) => order.id === orderId)) {
+    return;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/orders/${orderId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("주문 삭제에 실패했습니다.");
   }
 }

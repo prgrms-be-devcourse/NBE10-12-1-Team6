@@ -12,9 +12,39 @@ function getRandomProducts(products: Product[]) {
   return [...products].sort(() => Math.random() - 0.5).slice(0, 3);
 }
 
+function RecommendedProductCard({ product }: { product: Product }) {
+  return (
+    <Link
+      href={`/products/${product.id}`}
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-[#d2c3bf]/50 bg-[#f4f4f0] transition-colors hover:border-[#a67c52]"
+    >
+      <div
+        className="aspect-[4/3] bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.02]"
+        style={{ backgroundImage: `url(${product.imageUrl})` }}
+        aria-label={product.name}
+      />
+      <div className="flex flex-1 flex-col p-6">
+        <p className="mb-2 text-sm font-semibold text-[#7d562d]">
+          Specialty Beans
+        </p>
+        <h3 className="text-2xl font-semibold leading-tight text-[#130805]">
+          {product.name}
+        </h3>
+        <p className="mt-3 line-clamp-2 min-h-[3.5rem] leading-7 text-[#4f4542]">
+          {product.description}
+        </p>
+        <p className="mt-auto pt-6 text-2xl font-semibold text-[#7d562d]">
+          {formatPrice(product.price)}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 export default async function Home() {
   const products = getRandomProducts(await getProducts());
   const [featured, ...secondaryProducts] = products;
+  const shouldUseBalancedGrid = products.length <= 2;
 
   return (
     <>
@@ -60,7 +90,13 @@ export default async function Home() {
             </Link>
           </div>
 
-          {featured ? (
+          {featured && shouldUseBalancedGrid ? (
+            <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2">
+              {products.map((product) => (
+                <RecommendedProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : featured ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
               <Link
                 href={`/products/${featured.id}`}
