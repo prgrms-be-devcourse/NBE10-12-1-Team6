@@ -16,6 +16,7 @@ import {
   createProduct,
   deleteProduct,
   getProducts,
+  isFallbackProduct,
   type Product,
 } from "@/app/api";
 import ManagerNotice from "../../../../../component/manage/ManagerNotice";
@@ -231,7 +232,10 @@ export default function ManageProductPage() {
     setErrorMessage("");
 
     try {
-      await deleteProduct(pendingDeleteProduct.id);
+      if (!isFallbackProduct(pendingDeleteProduct)) {
+        await deleteProduct(pendingDeleteProduct.id);
+      }
+
       setProducts((prevProducts) =>
         prevProducts.filter((product) => product.id !== pendingDeleteProduct.id),
       );

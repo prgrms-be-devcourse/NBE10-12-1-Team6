@@ -2,6 +2,17 @@ import { fallbackProducts } from "@/data/fallbackProducts";
 import { API_BASE_URL, unwrapRsData } from "@/lib/api/client";
 import type { Product, ProductRequest } from "@/types/product";
 
+export function isFallbackProduct(product: Product) {
+  return fallbackProducts.some(
+    (fallbackProduct) =>
+      fallbackProduct.id === product.id &&
+      fallbackProduct.name === product.name &&
+      fallbackProduct.price === product.price &&
+      fallbackProduct.description === product.description &&
+      fallbackProduct.imageUrl === product.imageUrl,
+  );
+}
+
 export async function getProducts(): Promise<Product[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/products`, {
