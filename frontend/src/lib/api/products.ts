@@ -64,6 +64,23 @@ export async function createProduct(product: ProductRequest): Promise<Product> {
   return unwrapRsData<Product>(await response.json());
 }
 
+export async function updateProduct(
+  productId: number,
+  product: ProductRequest,
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/products/${productId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(product),
+  });
+
+  if (!response.ok) {
+    throw new Error("상품 수정에 실패했습니다.");
+  }
+}
+
 export async function deleteProduct(productId: number): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/v1/products/${productId}`, {
     method: "DELETE",

@@ -7,6 +7,7 @@ export {
   getProduct,
   getProducts,
   isFallbackProduct,
+  updateProduct,
 } from "@/lib/api/products";
 export type { CreateOrderRequest, Order, OrderItem, OrderItemRequest } from "@/types/order";
 export type { Product, ProductRequest } from "@/types/product";
