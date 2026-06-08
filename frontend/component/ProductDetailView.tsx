@@ -10,9 +10,13 @@ import { useCartStore } from "@/stores/cartStore";
 
 type ProductDetailViewProps = {
   product: Product | null;
+  monthlySales: number;
 };
 
-export default function ProductDetailView({ product }: ProductDetailViewProps) {
+export default function ProductDetailView({
+  product,
+  monthlySales,
+}: ProductDetailViewProps) {
   const router = useRouter();
   const addCartItem = useCartStore((state) => state.addCartItem);
   const [quantity, setQuantity] = useState(1);
@@ -110,6 +114,25 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
 
             <div className="text-4xl font-bold text-[#130805]">
               {formatPrice(product.price)}
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 rounded-xl border border-[#d2c3bf]/40 bg-white p-5 sm:grid-cols-2">
+              <div>
+                <p className="text-sm font-semibold text-[#817471]">
+                  최근 한 달 판매량
+                </p>
+                <p className="mt-2 text-2xl font-bold text-[#130805]">
+                  {monthlySales}개
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#817471]">
+                  상세 정보
+                </p>
+                <p className="mt-2 text-sm leading-6 text-[#4f4542]">
+                  판매량은 최근 한 달 주문 데이터를 기준으로 집계됩니다.
+                </p>
+              </div>
             </div>
 
             <div className="rounded-xl border border-[#d2c3bf]/40 bg-[#f4f4f0] p-6">

@@ -16,7 +16,6 @@ import {
   createProduct,
   deleteProduct,
   getProducts,
-  isFallbackProduct,
   updateProduct,
   type Product,
 } from "@/app/api";
@@ -200,18 +199,8 @@ export default function ManageProductPage() {
       };
 
       if (editingProduct) {
-        if (!isFallbackProduct(editingProduct)) {
-          await updateProduct(editingProduct.id, productPayload);
-          await loadProducts();
-        } else {
-          setProducts((prevProducts) =>
-            prevProducts.map((product) =>
-              product.id === editingProduct.id
-                ? { ...product, ...productPayload }
-                : product,
-            ),
-          );
-        }
+        await updateProduct(editingProduct.id, productPayload);
+        await loadProducts();
 
         setMessage("상품이 수정되었습니다.");
         setEditingProduct(null);
@@ -279,9 +268,7 @@ export default function ManageProductPage() {
     setErrorMessage("");
 
     try {
-      if (!isFallbackProduct(pendingDeleteProduct)) {
-        await deleteProduct(pendingDeleteProduct.id);
-      }
+      await deleteProduct(pendingDeleteProduct.id);
 
       setProducts((prevProducts) =>
         prevProducts.filter((product) => product.id !== pendingDeleteProduct.id),

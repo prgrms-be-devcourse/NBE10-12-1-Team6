@@ -1,4 +1,3 @@
-export { fallbackProducts } from "@/data/fallbackProducts";
 export { API_BASE_URL } from "@/lib/api/client";
 export {
   createOrder,
@@ -6,6 +5,8 @@ export {
   getAdminOrders,
   getOrderItems,
   getOrders,
+  getProductSalesBetween,
+  getSalesBetween,
   updateOrderStatus,
 } from "@/lib/api/orders";
 export {
@@ -13,7 +14,6 @@ export {
   deleteProduct,
   getProduct,
   getProducts,
-  isFallbackProduct,
   updateProduct,
 } from "@/lib/api/products";
 export type {
@@ -25,3 +25,4 @@ export type {
   UpdateOrderStatusRequest,
 } from "@/types/order";
 export type { Product, ProductRequest } from "@/types/product";
+export type { ProductSale } from "@/types/product";

@@ -12,3 +12,8 @@ export type ProductRequest = {
   description: string;
   imageUrl: string;
 };
+
+export type ProductSale = {
+  id: number;
+  sales: number;
+};

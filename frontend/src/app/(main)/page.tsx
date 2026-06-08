@@ -153,7 +153,7 @@ export default async function Home() {
             </div>
           ) : (
             <p className="rounded-xl border border-[#d2c3bf]/50 bg-[#f4f4f0] p-8 text-[#4f4542]">
-              추천 상품을 불러올 수 없습니다.
+              등록된 추천 상품이 없습니다.
             </p>
           )}
         </section>
