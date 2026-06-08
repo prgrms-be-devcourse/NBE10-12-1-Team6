@@ -14,9 +14,13 @@ import {
   deleteOrder,
   getAdminOrders,
   getOrderItems,
+  getProducts,
+  getProductSalesBetween,
+  getSalesBetween,
   updateOrderStatus,
   type Order,
   type OrderItem,
+  type ProductSale,
   type OrderStatus,
 } from "@/app/api";
 import OrderDetailPanel from "../../../../../component/OrderDetailPanel";
@@ -42,10 +46,18 @@ const orderStatusOptions: { value: OrderStatus; label: string }[] = [
   { value: "AFTER_PROCESSING", label: "처리 후" },
 ];
 
+type RankedProductSale = ProductSale & {
+  name: string;
+};
+
 export default function ManageOrderPage() {
   const successTimerId = useRef<number | undefined>(undefined);
   const defaultDateRange = useMemo(() => getDefaultDateRange(), []);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [periodSales, setPeriodSales] = useState(0);
+  const [rankedProductSales, setRankedProductSales] = useState<
+    RankedProductSale[]
+  >([]);
   const [startDate, setStartDate] = useState(defaultDateRange.startDate);
   const [endDate, setEndDate] = useState(defaultDateRange.endDate);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -74,7 +86,29 @@ export default function ManageOrderPage() {
     setIsLoading(true);
     setSuccessMessage("");
     setErrorMessage("");
-    setOrders(await getAdminOrders(toStartDateTime(start), toEndDateTime(end)));
+    const startDateTime = toStartDateTime(start);
+    const endDateTime = toEndDateTime(end);
+    const [ordersData, salesAmount, productSalesData, productsData] =
+      await Promise.all([
+      getAdminOrders(startDateTime, endDateTime),
+      getSalesBetween(startDateTime, endDateTime),
+      getProductSalesBetween(startDateTime, endDateTime),
+      getProducts(),
+    ]);
+    const productNameMap = new Map(
+      productsData.map((product) => [product.id, product.name]),
+    );
+
+    setOrders(ordersData);
+    setPeriodSales(salesAmount);
+    setRankedProductSales(
+      productSalesData.slice(0, 3).map((productSale) => ({
+        ...productSale,
+        name:
+          productNameMap.get(productSale.id) ??
+          `상품 ID ${productSale.id}`,
+      })),
+    );
     setIsLoading(false);
   }, []);
 
@@ -291,6 +325,55 @@ export default function ManageOrderPage() {
             검색하기
           </button>
         </form>
+
+        <section className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-[0.75fr_1.25fr]">
+          <div className="rounded-lg border border-[#d2c3bf]/40 bg-white p-5 shadow-sm">
+            <p className="text-sm font-bold text-[#817471]">기간판매액</p>
+            <p className="mt-2 text-3xl font-bold text-[#130805]">
+              {formatPrice(periodSales)}
+            </p>
+            <p className="mt-1 text-sm text-[#4f4542]">
+              선택한 조회 기간의 총 판매액입니다.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-[#d2c3bf]/40 bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-[#817471]">
+                  최다 판매 원두
+                </p>
+                <p className="mt-1 text-sm text-[#4f4542]">
+                  선택한 조회 기간 기준 상위 3개 상품입니다.
+                </p>
+              </div>
+            </div>
+            {rankedProductSales.length > 0 ? (
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+                {rankedProductSales.map((productSale, index) => (
+                  <div
+                    key={productSale.id}
+                    className="rounded-lg border border-[#d2c3bf]/50 bg-[#f4f4f0] p-4"
+                  >
+                    <p className="text-sm font-bold text-[#7d562d]">
+                      Best seller {index + 1}등
+                    </p>
+                    <p className="mt-2 line-clamp-2 font-semibold text-[#130805]">
+                      {productSale.name}
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-[#4f4542]">
+                      {productSale.sales}개 판매
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-lg bg-[#f4f4f0] px-4 py-6 text-center text-sm text-[#4f4542]">
+                조회 기간 내 판매된 원두가 없습니다.
+              </p>
+            )}
+          </div>
+        </section>
 
         <ManagerNotice
           message={errorMessage}

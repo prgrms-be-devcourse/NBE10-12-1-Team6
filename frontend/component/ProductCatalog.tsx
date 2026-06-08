@@ -1,33 +1,75 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import type { Product } from "@/app/api";
+import type { Product, ProductSale } from "@/app/api";
 import ProductCard from "./ProductCard";
 
 const PAGE_SIZE = 8;
-const productBadges = ["Best Seller", "New Arrival", "Limited Edition"];
 
 type ProductCatalogProps = {
   products: Product[];
+  initialProductSales: ProductSale[];
 };
 
-export default function ProductCatalog({ products }: ProductCatalogProps) {
+type SortMode = "latest" | "popular";
+
+export default function ProductCatalog({
+  products,
+  initialProductSales,
+}: ProductCatalogProps) {
   const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortMode, setSortMode] = useState<SortMode>("latest");
   const [page, setPage] = useState(1);
+
+  const productSalesMap = useMemo(
+    () =>
+      new Map(
+        initialProductSales.map((sale, index) => [
+          sale.id,
+          { ...sale, rank: index + 1 },
+        ]),
+      ),
+    [initialProductSales],
+  );
+
+  const sortedProducts = useMemo(() => {
+    if (sortMode === "latest") {
+      return [...products].sort((a, b) => b.id - a.id);
+    }
+
+    return [...products].sort((a, b) => {
+      const aSale = productSalesMap.get(a.id);
+      const bSale = productSalesMap.get(b.id);
+
+      if (aSale && bSale) {
+        return aSale.rank - bSale.rank;
+      }
+
+      if (aSale) {
+        return -1;
+      }
+
+      if (bSale) {
+        return 1;
+      }
+
+      return a.id - b.id;
+    });
+  }, [productSalesMap, products, sortMode]);
 
   const filteredProducts = useMemo(() => {
     const normalizedSearchTerm = searchTerm.trim().toLowerCase();
 
     if (!normalizedSearchTerm) {
-      return products;
+      return sortedProducts;
     }
 
-    return products.filter((product) => {
+    return sortedProducts.filter((product) => {
       const searchableText = `${product.name} ${product.description}`.toLowerCase();
       return searchableText.includes(normalizedSearchTerm);
     });
-  }, [products, searchTerm]);
+  }, [searchTerm, sortedProducts]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -84,23 +126,52 @@ export default function ProductCatalog({ products }: ProductCatalogProps) {
         </p>
       </div>
 
+      <div className="mb-8 flex flex-wrap items-center gap-2">
+        {(["latest", "popular"] as SortMode[]).map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => {
+              setSortMode(mode);
+              setPage(1);
+            }}
+            className={`h-10 rounded-lg px-4 text-sm font-semibold transition-colors ${
+              sortMode === mode
+                ? "bg-[#130805] text-white"
+                : "border border-[#d2c3bf] bg-white text-[#4f4542] hover:border-[#7d562d] hover:text-[#130805]"
+            }`}
+          >
+            {mode === "latest" ? "최신순" : "인기순"}
+          </button>
+        ))}
+        <span className="text-sm font-medium text-[#817471]">
+          인기순은 최근 한 달 판매량 기준입니다.
+        </span>
+      </div>
+
       {visibleProducts.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {visibleProducts.map((product, index) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              badge={
-                currentPage === 1 && index < productBadges.length
-                  ? productBadges[index]
-                  : undefined
-              }
-            />
-          ))}
+          {visibleProducts.map((product) => {
+            const salesRank = productSalesMap.get(product.id)?.rank;
+
+            return (
+              <ProductCard
+                key={product.id}
+                product={product}
+                badge={
+                  salesRank && salesRank <= 3
+                    ? `Best seller ${salesRank}등`
+                    : undefined
+                }
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="rounded-xl border border-[#d2c3bf]/50 bg-[#f4f4f0] p-8 text-[#4f4542]">
-          검색 결과가 없습니다.
+          {products.length > 0
+            ? "검색 결과가 없습니다."
+            : "등록된 상품이 없습니다."}
         </div>
       )}
 

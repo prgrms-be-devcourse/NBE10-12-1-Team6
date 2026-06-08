@@ -1,17 +1,5 @@
-import { fallbackProducts } from "@/data/fallbackProducts";
 import { API_BASE_URL, unwrapRsData } from "@/lib/api/client";
 import type { Product, ProductRequest } from "@/types/product";
-
-export function isFallbackProduct(product: Product) {
-  return fallbackProducts.some(
-    (fallbackProduct) =>
-      fallbackProduct.id === product.id &&
-      fallbackProduct.name === product.name &&
-      fallbackProduct.price === product.price &&
-      fallbackProduct.description === product.description &&
-      fallbackProduct.imageUrl === product.imageUrl,
-  );
-}
 
 export async function getProducts(): Promise<Product[]> {
   try {
@@ -20,15 +8,13 @@ export async function getProducts(): Promise<Product[]> {
     });
 
     if (!response.ok) {
-      return fallbackProducts;
+      return [];
     }
 
     const products = (await response.json()) as Product[];
-    return Array.isArray(products) && products.length > 0
-      ? products
-      : fallbackProducts;
+    return Array.isArray(products) ? products : [];
   } catch {
-    return fallbackProducts;
+    return [];
   }
 }
 
@@ -39,12 +25,12 @@ export async function getProduct(productId: number): Promise<Product | null> {
     });
 
     if (!response.ok) {
-      return fallbackProducts.find((product) => product.id === productId) ?? null;
+      return null;
     }
 
     return (await response.json()) as Product;
   } catch {
-    return fallbackProducts.find((product) => product.id === productId) ?? null;
+    return null;
   }
 }
 

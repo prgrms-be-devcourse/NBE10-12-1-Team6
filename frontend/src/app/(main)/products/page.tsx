@@ -1,11 +1,21 @@
 import Footer from "../../../../component/Footer";
 import ProductCatalog from "../../../../component/ProductCatalog";
-import { getProducts } from "../../api";
+import { getProductSalesBetween, getProducts } from "../../api";
+import {
+  getDefaultDateRange,
+  toEndDateTime,
+  toStartDateTime,
+} from "@/lib/dateRange";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProductsPage() {
+  const defaultDateRange = getDefaultDateRange();
   const products = await getProducts();
+  const productSales = await getProductSalesBetween(
+      toStartDateTime(defaultDateRange.startDate),
+      toEndDateTime(defaultDateRange.endDate),
+  );
 
   return (
     <>
@@ -24,7 +34,10 @@ export default async function ProductsPage() {
           </p>
         </header>
 
-        <ProductCatalog products={products} />
+        <ProductCatalog
+          products={products}
+          initialProductSales={productSales}
+        />
       </main>
 
       <Footer />

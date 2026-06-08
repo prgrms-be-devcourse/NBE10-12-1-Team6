@@ -1,4 +1,3 @@
-import { fallbackOrders } from "@/data/fallbackOrders";
 import { API_BASE_URL, unwrapRsData } from "@/lib/api/client";
 import type {
   CreateOrderRequest,
@@ -6,32 +5,7 @@ import type {
   OrderItem,
   OrderStatus,
 } from "@/types/order";
-
-function getFallbackOrdersByEmail(email: string) {
-  const normalizedEmail = email.trim().toLowerCase();
-
-  return fallbackOrders.filter((order) =>
-    order.email.toLowerCase().includes(normalizedEmail),
-  );
-}
-
-function getFallbackAdminOrders(start: string, end: string) {
-  const startTime = new Date(start).getTime();
-  const endTime = new Date(end).getTime();
-
-  if (Number.isNaN(startTime) || Number.isNaN(endTime)) {
-    return fallbackOrders;
-  }
-
-  return fallbackOrders.filter((order) => {
-    const orderTime = new Date(order.createDate).getTime();
-    return orderTime >= startTime && orderTime <= endTime;
-  });
-}
-
-function isFallbackOrder(orderId: number) {
-  return fallbackOrders.some((order) => order.id === orderId);
-}
+import type { ProductSale } from "@/types/product";
 
 export async function createOrder(order: CreateOrderRequest): Promise<Order> {
   const response = await fetch(`${API_BASE_URL}/api/v1/orders`, {
@@ -69,11 +43,9 @@ export async function getOrders(email: string): Promise<Order[]> {
     }
 
     const orders = unwrapRsData<Order[]>(await response.json());
-    return Array.isArray(orders) && orders.length > 0
-      ? orders
-      : getFallbackOrdersByEmail(normalizedEmail);
+    return Array.isArray(orders) ? orders : [];
   } catch {
-    return getFallbackOrdersByEmail(normalizedEmail);
+    return [];
   }
 }
 
@@ -92,11 +64,58 @@ export async function getAdminOrders(start: string, end: string): Promise<Order[
     }
 
     const orders = unwrapRsData<Order[]>(await response.json());
-    return Array.isArray(orders) && orders.length > 0
-      ? orders
-      : getFallbackAdminOrders(start, end);
+    return Array.isArray(orders) ? orders : [];
   } catch {
-    return getFallbackAdminOrders(start, end);
+    return [];
+  }
+}
+
+export async function getSalesBetween(start: string, end: string): Promise<number> {
+  try {
+    const params = new URLSearchParams({
+      start,
+      end,
+    });
+    const response = await fetch(`${API_BASE_URL}/api/v1/orders/admin/sales?${params}`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return 0;
+    }
+
+    return unwrapRsData<number>(await response.json());
+  } catch {
+    return 0;
+  }
+}
+
+export async function getProductSalesBetween(
+  start: string,
+  end: string,
+): Promise<ProductSale[]> {
+  try {
+    const params = new URLSearchParams({
+      start,
+      end,
+    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/orders/admin/sales/product?${params}`,
+      {
+        cache: "no-store",
+      },
+    );
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const productSales = unwrapRsData<ProductSale[]>(await response.json());
+    return Array.isArray(productSales)
+      ? productSales.sort((a, b) => b.sales - a.sales)
+      : [];
+  } catch {
+    return [];
   }
 }
 
@@ -104,20 +123,6 @@ export async function updateOrderStatus(
   orderId: number,
   status: OrderStatus,
 ): Promise<Order> {
-  if (isFallbackOrder(orderId)) {
-    const fallbackOrder = fallbackOrders.find((order) => order.id === orderId);
-
-    if (!fallbackOrder) {
-      throw new Error("주문을 찾을 수 없습니다.");
-    }
-
-    return {
-      ...fallbackOrder,
-      status,
-      modifyDate: new Date().toISOString(),
-    };
-  }
-
   const response = await fetch(`${API_BASE_URL}/api/v1/orders/${orderId}/status`, {
     method: "PATCH",
     headers: {
@@ -134,12 +139,6 @@ export async function updateOrderStatus(
 }
 
 export async function getOrderItems(orderId: number): Promise<OrderItem[]> {
-  const fallbackOrder = fallbackOrders.find((order) => order.id === orderId);
-
-  if (fallbackOrder) {
-    return fallbackOrder.orderItems;
-  }
-
   const response = await fetch(`${API_BASE_URL}/api/v1/orders/${orderId}/items`, {
     cache: "no-store",
   });
@@ -152,10 +151,6 @@ export async function getOrderItems(orderId: number): Promise<OrderItem[]> {
 }
 
 export async function deleteOrder(orderId: number): Promise<void> {
-  if (isFallbackOrder(orderId)) {
-    return;
-  }
-
   const response = await fetch(`${API_BASE_URL}/api/v1/orders/${orderId}`, {
     method: "DELETE",
   });
