@@ -1,4 +1,5 @@
 import type { Order } from "@/types/order";
+import type { OrderStatus } from "@/types/order";
 
 export function getOrderTitle(order: Order) {
   const [firstItem, ...restItems] = order.orderItems ?? [];
@@ -12,7 +13,7 @@ export function getOrderTitle(order: Order) {
     : firstItem.productName;
 }
 
-export function getOrderStatusLabel(status: string) {
+export function getOrderStatusLabel(status: OrderStatus | string) {
   switch (status) {
     case "BEFORE_PROCESSING":
       return "처리 전";
@@ -23,7 +24,7 @@ export function getOrderStatusLabel(status: string) {
   }
 }
 
-export function getOrderStatusClass(status: string) {
+export function getOrderStatusClass(status: OrderStatus | string) {
   return status === "AFTER_PROCESSING"
     ? "bg-[#ffca98]/40 text-[#7a532a]"
     : "bg-[#ffdad6] text-[#93000a]";

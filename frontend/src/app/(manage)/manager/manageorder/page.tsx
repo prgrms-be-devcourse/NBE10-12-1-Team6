@@ -2,13 +2,20 @@
 
 import {
   FormEvent,
+  ChangeEvent,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { deleteOrder, getAdminOrders, type Order } from "@/app/api";
+import {
+  deleteOrder,
+  getAdminOrders,
+  updateOrderStatus,
+  type Order,
+  type OrderStatus,
+} from "@/app/api";
 import ManagerNotice from "../../../../../component/manage/ManagerNotice";
 import ManagerPageHeader from "../../../../../component/manage/ManagerPageHeader";
 import ManagerPagination from "../../../../../component/manage/ManagerPagination";
@@ -26,6 +33,10 @@ import {
 
 const PAGE_SIZE = 5;
 const SUCCESS_HIDE_DELAY = 3200;
+const orderStatusOptions: { value: OrderStatus; label: string }[] = [
+  { value: "BEFORE_PROCESSING", label: "처리 전" },
+  { value: "AFTER_PROCESSING", label: "처리 후" },
+];
 
 export default function ManageOrderPage() {
   const successTimerId = useRef<number | undefined>(undefined);
@@ -37,6 +48,9 @@ export default function ManageOrderPage() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [updatingStatusOrderId, setUpdatingStatusOrderId] = useState<
+    number | null
+  >(null);
   const [pendingDeleteOrder, setPendingDeleteOrder] = useState<Order | null>(
     null,
   );
@@ -98,6 +112,56 @@ export default function ManageOrderPage() {
     setErrorMessage("");
     setPendingDeleteOrder(order);
   };
+
+  const handleStatusChange =
+    (order: Order) => async (event: ChangeEvent<HTMLSelectElement>) => {
+      const nextStatus = event.target.value as OrderStatus;
+
+      if (order.status === nextStatus) {
+        return;
+      }
+
+      setUpdatingStatusOrderId(order.id);
+      setSuccessMessage("");
+      setErrorMessage("");
+
+      try {
+        const updatedOrder = await updateOrderStatus(order.id, nextStatus);
+
+        setOrders((prevOrders) =>
+          prevOrders.map((prevOrder) =>
+            prevOrder.id === order.id
+              ? {
+                  ...prevOrder,
+                  ...updatedOrder,
+                  status: updatedOrder.status ?? nextStatus,
+                }
+              : prevOrder,
+          ),
+        );
+        setSuccessMessage(
+          `주문 #${order.id}의 상태가 ${getOrderStatusLabel(
+            nextStatus,
+          )}(으)로 변경되었습니다.`,
+        );
+
+        if (successTimerId.current) {
+          window.clearTimeout(successTimerId.current);
+        }
+
+        successTimerId.current = window.setTimeout(() => {
+          setSuccessMessage("");
+        }, SUCCESS_HIDE_DELAY);
+      } catch (error) {
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "주문 상태 변경에 실패했습니다.",
+        );
+      } finally {
+        setUpdatingStatusOrderId(null);
+      }
+    };
 
   const handleCancelDelete = () => {
     setPendingDeleteOrder(null);
@@ -248,13 +312,24 @@ export default function ManageOrderPage() {
                         {formatPrice(order.price)}
                       </td>
                       <td className="px-6 py-5 text-center">
-                        <span
-                          className={`inline-flex justify-center rounded-full px-3 py-1 text-xs font-semibold ${getOrderStatusClass(
+                        <select
+                          value={order.status}
+                          onChange={handleStatusChange(order)}
+                          disabled={updatingStatusOrderId === order.id}
+                          aria-label={`주문 #${order.id} 진행 상태 변경`}
+                          className={`inline-flex h-8 min-w-24 cursor-pointer appearance-none rounded-full border-0 px-3 text-center text-xs font-semibold outline-none transition-all focus:ring-2 focus:ring-[#ffca98] disabled:cursor-wait disabled:opacity-60 ${getOrderStatusClass(
                             order.status,
                           )}`}
                         >
-                          {getOrderStatusLabel(order.status)}
-                        </span>
+                          {orderStatusOptions.map((statusOption) => (
+                            <option
+                              key={statusOption.value}
+                              value={statusOption.value}
+                            >
+                              {statusOption.label}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                       <td className="px-6 py-5 text-center">
                         <button
@@ -344,7 +419,7 @@ export default function ManageOrderPage() {
           <div className="mx-auto flex max-w-3xl flex-col gap-4 rounded-xl border border-[#d2c3bf]/70 bg-[#2c1e1a] px-5 py-4 text-[#f9f5eb] shadow-2xl shadow-[#130805]/25 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-[#f0bd8b]">
-                주문 삭제 완료
+                처리 완료
               </p>
               <p className="mt-1 text-sm text-[#f7ddd6]">{successMessage}</p>
             </div>
