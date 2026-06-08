@@ -2,6 +2,7 @@ package com.back.domain.order.order.controller;
 
 import com.back.domain.order.order.dto.OrderDto;
 import com.back.domain.order.order.entity.Order;
+import com.back.domain.order.order.entity.OrderStatus;
 import com.back.domain.order.order.service.OrderService;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -144,6 +145,28 @@ public class ApiV1OrderController {
                 "200-5",
                 "%d번 주문의 상품 목록 조회에 성공했습니다.".formatted(id),
                 orderItemDtos
+        );
+    }
+
+    // 주문 상태 변경용 Request Body DTO
+    public record OrderStatusModifyReqBody(
+            @NotNull(message = "주문 상태는 필수입니다.")
+            OrderStatus status
+    ) {}
+
+    // PATCH를 사용함
+    @PatchMapping("/{id}/status")
+    @Operation(summary = "주문 상태 수동 변경 (관리자)")
+    @Transactional
+    public RsData<OrderDto> modifyOrderStatus(
+            @PathVariable Long id,
+            @RequestBody @Valid OrderStatusModifyReqBody reqBody
+    ) {
+        Order order = orderService.modifyOrderStatus(id, reqBody.status());
+        return new RsData<>(
+                "200-6",
+                "%d번 주문 상태가 [%s](으)로 변경되었습니다.".formatted(id, reqBody.status().getDescription()),
+                new OrderDto(order)
         );
     }
 }
