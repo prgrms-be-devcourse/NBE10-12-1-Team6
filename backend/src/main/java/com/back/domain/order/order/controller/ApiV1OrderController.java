@@ -27,7 +27,7 @@ public class ApiV1OrderController {
 
     private final OrderService orderService;
 
-    // 1. 입력용 ReqBody
+    // 주문 생성 입력용 ReqBody
     public record OrderCreateReqBody(
             @NotBlank(message = "이메일은 필수 입력 항목입니다.")
             @Email(message = "올바른 이메일 형식이 아닙니다.")
@@ -129,6 +129,21 @@ public class ApiV1OrderController {
         return new RsData<>(
                 "200-4",
                 "%d번 주문이 삭제되었습니다.".formatted(id)
+        );
+    }
+
+    @GetMapping("/{id}/items")
+    @Operation(summary = "특정 주문의 상품 목록 조회")
+    @Transactional(readOnly = true)
+    public RsData<List<OrderDto.OrderItemDto>> getOrderItems(@PathVariable Long id) {
+        Order order = orderService.getOrderById(id);
+        List<OrderDto.OrderItemDto> orderItemDtos = order.getOrderItems().stream()
+                .map(OrderDto.OrderItemDto::new)
+                .toList();
+        return new RsData<>(
+                "200-5",
+                "%d번 주문의 상품 목록 조회에 성공했습니다.".formatted(id),
+                orderItemDtos
         );
     }
 }
