@@ -69,6 +69,15 @@ export default function PaymentPage() {
       }));
     };
 
+  const handleAddressSelect = (
+    address: Pick<DeliveryFormState, "zipCode" | "address1" | "address2">,
+  ) => {
+    setForm((prevForm) => ({
+      ...prevForm,
+      ...address,
+    }));
+  };
+
   const handleQuantityChange = (productId: number, quantity: number) => {
     updateCartItem(productId, Math.max(1, quantity));
   };
@@ -154,7 +163,11 @@ export default function PaymentPage() {
               onQuantityChange={handleQuantityChange}
               onRemove={setPendingDeleteItem}
             />
-            <DeliveryForm form={form} onChange={handleChange} />
+            <DeliveryForm
+              form={form}
+              onChange={handleChange}
+              onAddressSelect={handleAddressSelect}
+            />
           </div>
 
           <PaymentSummary
