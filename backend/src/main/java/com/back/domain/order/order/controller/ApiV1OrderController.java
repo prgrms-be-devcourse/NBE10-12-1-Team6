@@ -12,12 +12,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -81,6 +80,43 @@ public class ApiV1OrderController {
                 "200-1",
                 "%d번 주문이 완료되었습니다.".formatted(order.getId()),
                 new OrderDto(order)
+        );
+    }
+
+    // 고객 주문 조회 (이메일 기준)
+    @GetMapping
+    @Operation(summary = "이메일 기준 주문 조회")
+    @Transactional(readOnly = true)
+    public RsData<List<OrderDto>> getOrdersByEmail(@RequestParam String email) {
+        List<Order> orders = orderService.getOrdersByEmail(email);
+        List<OrderDto> orderDtos = orders.stream()
+                .map(OrderDto::new)
+                .toList();
+
+        return new RsData<>(
+                "200-2",
+                "이메일(%s)의 주문 내역 조회에 성공했습니다.".formatted(email),
+                orderDtos
+        );
+    }
+
+    // 주문 전체 조회 (관리자 - 날짜 범위 기준)
+    @GetMapping("/admin")
+    @Operation(summary = "기간별 주문 전체 조회 (관리자)")
+    @Transactional(readOnly = true)
+    public RsData<List<OrderDto>> getOrdersBetween(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
+    ) {
+        List<Order> orders = orderService.getOrderBetweenDay(start, end);
+        List<OrderDto> orderDtos = orders.stream()
+                .map(OrderDto::new)
+                .toList();
+
+        return new RsData<>(
+                "200-3",
+                "주문 전체 조회에 성공했습니다.",
+                orderDtos
         );
     }
 }
