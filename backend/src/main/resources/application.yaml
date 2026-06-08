@@ -23,3 +23,7 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
     org.hibernate.orm.jdbc.extract: TRACE
     org.springframework.transaction.interceptor: TRACE
+schedule:
+  process_order:
+    cron: 0 0 14 * * *
+    use: true

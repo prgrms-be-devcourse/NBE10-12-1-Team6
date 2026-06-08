@@ -81,8 +81,7 @@ public class OrderService {
 
         Order o = order.orElseGet(() ->
                 orderRepository.save(new Order(
-                        email, zipCode, address1, address2,
-                        OrderStatus.BEFORE_PROCESSING, 0, new ArrayList<>())));
+                        email, zipCode, address1, address2)));
 
         for (var oi : orderItem) {
             o.addOrderItem(oi);
@@ -130,5 +129,15 @@ public class OrderService {
     public void deleteOrder(Long id) {
         Order order = getOrderById(id);
         orderRepository.delete(order);
+    }
+
+    public void processOrder() {
+
+        List<Order> orders = getOrdersByDay(LocalDateTime.of(LocalDate.now(), LocalTime.MIN));
+
+        for (var order : orders) {
+            order.changeStatus(OrderStatus.AFTER_PROCESSING);
+        }
+
     }
 }
