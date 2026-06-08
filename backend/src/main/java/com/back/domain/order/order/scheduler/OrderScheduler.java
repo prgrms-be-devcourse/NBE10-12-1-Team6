@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class OrderScheduler {
     private final OrderService orderService;
 
