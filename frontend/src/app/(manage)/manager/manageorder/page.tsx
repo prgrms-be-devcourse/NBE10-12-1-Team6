@@ -3,6 +3,7 @@
 import {
   FormEvent,
   ChangeEvent,
+  MouseEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -12,10 +13,13 @@ import {
 import {
   deleteOrder,
   getAdminOrders,
+  getOrderItems,
   updateOrderStatus,
   type Order,
+  type OrderItem,
   type OrderStatus,
 } from "@/app/api";
+import OrderDetailPanel from "../../../../../component/OrderDetailPanel";
 import ManagerNotice from "../../../../../component/manage/ManagerNotice";
 import ManagerPageHeader from "../../../../../component/manage/ManagerPageHeader";
 import ManagerPagination from "../../../../../component/manage/ManagerPagination";
@@ -54,6 +58,10 @@ export default function ManageOrderPage() {
   const [pendingDeleteOrder, setPendingDeleteOrder] = useState<Order | null>(
     null,
   );
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrderItems, setSelectedOrderItems] = useState<OrderItem[]>([]);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [detailErrorMessage, setDetailErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -110,7 +118,31 @@ export default function ManageOrderPage() {
   const handleRequestDelete = (order: Order) => {
     setSuccessMessage("");
     setErrorMessage("");
+    setSelectedOrder(null);
     setPendingDeleteOrder(order);
+  };
+
+  const handleControlClick = (event: MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+  };
+
+  const handleOpenOrderDetail = async (order: Order) => {
+    setSelectedOrder(order);
+    setSelectedOrderItems(order.orderItems ?? []);
+    setDetailErrorMessage("");
+    setIsDetailLoading(true);
+
+    try {
+      setSelectedOrderItems(await getOrderItems(order.id));
+    } catch (error) {
+      setDetailErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "주문 상품 목록 조회에 실패했습니다.",
+      );
+    } finally {
+      setIsDetailLoading(false);
+    }
   };
 
   const handleStatusChange =
@@ -294,7 +326,16 @@ export default function ManageOrderPage() {
                   visibleOrders.map((order) => (
                     <tr
                       key={order.id}
-                      className="transition-colors hover:bg-[#f4f4f0]/70"
+                      onClick={() => void handleOpenOrderDetail(order)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          void handleOpenOrderDetail(order);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      className="cursor-pointer transition-colors hover:bg-[#f4f4f0]/70 focus:bg-[#f4f4f0]/70 focus:outline-none"
                     >
                       <td className="px-6 py-5 text-left font-bold text-[#130805]">
                         #{order.id}
@@ -315,6 +356,7 @@ export default function ManageOrderPage() {
                         <select
                           value={order.status}
                           onChange={handleStatusChange(order)}
+                          onClick={handleControlClick}
                           disabled={updatingStatusOrderId === order.id}
                           aria-label={`주문 #${order.id} 진행 상태 변경`}
                           className={`inline-flex h-8 min-w-24 cursor-pointer appearance-none rounded-full border-0 px-3 text-center text-xs font-semibold outline-none transition-all focus:ring-2 focus:ring-[#ffca98] disabled:cursor-wait disabled:opacity-60 ${getOrderStatusClass(
@@ -334,7 +376,10 @@ export default function ManageOrderPage() {
                       <td className="px-6 py-5 text-center">
                         <button
                           type="button"
-                          onClick={() => handleRequestDelete(order)}
+                          onClick={(event) => {
+                            handleControlClick(event);
+                            handleRequestDelete(order);
+                          }}
                           className="min-w-16 whitespace-nowrap rounded-lg border border-[#d2c3bf] px-4 py-2 text-sm font-semibold text-[#93000a] transition-colors hover:border-[#ba1a1a] hover:bg-[#ffdad6]"
                         >
                           삭제
@@ -365,6 +410,14 @@ export default function ManageOrderPage() {
           />
         </section>
       </main>
+
+      <OrderDetailPanel
+        order={selectedOrder}
+        orderItems={selectedOrderItems}
+        isLoading={isDetailLoading}
+        errorMessage={detailErrorMessage}
+        onClose={() => setSelectedOrder(null)}
+      />
 
       <aside
         aria-live="polite"

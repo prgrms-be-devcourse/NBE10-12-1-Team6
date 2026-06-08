@@ -1,6 +1,11 @@
 import { fallbackOrders } from "@/data/fallbackOrders";
 import { API_BASE_URL, unwrapRsData } from "@/lib/api/client";
-import type { CreateOrderRequest, Order, OrderStatus } from "@/types/order";
+import type {
+  CreateOrderRequest,
+  Order,
+  OrderItem,
+  OrderStatus,
+} from "@/types/order";
 
 function getFallbackOrdersByEmail(email: string) {
   const normalizedEmail = email.trim().toLowerCase();
@@ -126,6 +131,24 @@ export async function updateOrderStatus(
   }
 
   return unwrapRsData<Order>(await response.json());
+}
+
+export async function getOrderItems(orderId: number): Promise<OrderItem[]> {
+  const fallbackOrder = fallbackOrders.find((order) => order.id === orderId);
+
+  if (fallbackOrder) {
+    return fallbackOrder.orderItems;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/orders/${orderId}/items`, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("주문 상품 목록 조회에 실패했습니다.");
+  }
+
+  return unwrapRsData<OrderItem[]>(await response.json());
 }
 
 export async function deleteOrder(orderId: number): Promise<void> {

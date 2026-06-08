@@ -2,8 +2,9 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Footer from "../../../../component/Footer";
+import OrderDetailPanel from "../../../../component/OrderDetailPanel";
 import { formatDate, formatPrice } from "@/lib/format";
-import { getOrders, type Order } from "../../api";
+import { getOrderItems, getOrders, type Order, type OrderItem } from "../../api";
 
 const PAGE_SIZE = 5;
 
@@ -44,6 +45,10 @@ export default function OrdersPage() {
   const [searchedEmail, setSearchedEmail] = useState("");
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrderItems, setSelectedOrderItems] = useState<OrderItem[]>([]);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [detailErrorMessage, setDetailErrorMessage] = useState("");
 
   const loadOrders = useCallback(async (email: string) => {
     const normalizedEmail = email.trim();
@@ -82,7 +87,27 @@ export default function OrdersPage() {
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPage(1);
+    setSelectedOrder(null);
     void loadOrders(emailInput);
+  };
+
+  const handleOpenOrderDetail = async (order: Order) => {
+    setSelectedOrder(order);
+    setSelectedOrderItems(order.orderItems ?? []);
+    setDetailErrorMessage("");
+    setIsDetailLoading(true);
+
+    try {
+      setSelectedOrderItems(await getOrderItems(order.id));
+    } catch (error) {
+      setDetailErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "주문 상품 목록 조회에 실패했습니다.",
+      );
+    } finally {
+      setIsDetailLoading(false);
+    }
   };
 
   return (
@@ -156,7 +181,16 @@ export default function OrdersPage() {
                   visibleOrders.map((order) => (
                     <tr
                       key={order.id}
-                      className="transition-colors hover:bg-[#f4f4f0]/70"
+                      onClick={() => void handleOpenOrderDetail(order)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          void handleOpenOrderDetail(order);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      className="cursor-pointer transition-colors hover:bg-[#f4f4f0]/70 focus:bg-[#f4f4f0]/70 focus:outline-none"
                     >
                       <td className="px-8 py-6 font-semibold text-[#130805]">
                         #{order.id}
@@ -233,6 +267,14 @@ export default function OrdersPage() {
           </div>
         </section>
       </main>
+
+      <OrderDetailPanel
+        order={selectedOrder}
+        orderItems={selectedOrderItems}
+        isLoading={isDetailLoading}
+        errorMessage={detailErrorMessage}
+        onClose={() => setSelectedOrder(null)}
+      />
 
       <Footer />
     </>
