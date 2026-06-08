@@ -17,6 +17,7 @@ import {
   deleteProduct,
   getProducts,
   isFallbackProduct,
+  updateProduct,
   type Product,
 } from "@/app/api";
 import ManagerNotice from "../../../../../component/manage/ManagerNotice";
@@ -52,8 +53,8 @@ function validateForm(form: ProductForm) {
     return "상품명을 입력해주세요.";
   }
 
-  if (!form.price || Number(form.price) <= 0) {
-    return "가격을 올바르게 입력해주세요.";
+  if (!form.price || Number(form.price) < 2) {
+    return "가격은 2원 이상으로 입력해주세요.";
   }
 
   if (!form.description.trim()) {
@@ -75,6 +76,7 @@ export default function ManageProductPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [pendingDeleteProduct, setPendingDeleteProduct] =
     useState<Product | null>(null);
   const [deleteSuccessMessage, setDeleteSuccessMessage] = useState("");
@@ -190,24 +192,69 @@ export default function ManageProductPage() {
     setIsSubmitting(true);
 
     try {
-      await createProduct({
+      const productPayload = {
         name: form.name.trim(),
         price: Number(form.price),
         description: form.description.trim(),
         imageUrl: form.imageUrl.trim(),
-      });
+      };
 
-      await loadProducts();
+      if (editingProduct) {
+        if (!isFallbackProduct(editingProduct)) {
+          await updateProduct(editingProduct.id, productPayload);
+          await loadProducts();
+        } else {
+          setProducts((prevProducts) =>
+            prevProducts.map((product) =>
+              product.id === editingProduct.id
+                ? { ...product, ...productPayload }
+                : product,
+            ),
+          );
+        }
+
+        setMessage("상품이 수정되었습니다.");
+        setEditingProduct(null);
+      } else {
+        await createProduct(productPayload);
+        await loadProducts();
+        setPage(1);
+        setMessage("상품이 등록되었습니다.");
+      }
+
       setForm(emptyForm);
-      setPage(1);
-      setMessage("상품이 등록되었습니다.");
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "상품 등록에 실패했습니다.",
+        error instanceof Error
+          ? error.message
+          : editingProduct
+            ? "상품 수정에 실패했습니다."
+            : "상품 등록에 실패했습니다.",
       );
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleRequestEdit = (product: Product) => {
+    setMessage("");
+    setDeleteSuccessMessage("");
+    setErrorMessage("");
+    setPendingDeleteProduct(null);
+    setEditingProduct(product);
+    setForm({
+      name: product.name,
+      price: String(product.price),
+      description: product.description,
+      imageUrl: product.imageUrl,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingProduct(null);
+    setForm(emptyForm);
+    setMessage("");
+    setErrorMessage("");
   };
 
   const handleRequestDelete = (product: Product) => {
@@ -274,11 +321,23 @@ export default function ManageProductPage() {
                   +
                 </span>
                 <h2 className="text-2xl font-semibold text-[#130805]">
-                  새 상품 등록
+                  {editingProduct ? "상품 수정" : "새 상품 등록"}
                 </h2>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
+                {editingProduct ? (
+                  <div className="rounded-lg border border-[#d2c3bf]/70 bg-[#f4f4f0] px-4 py-3">
+                    <p className="text-sm font-semibold text-[#7d562d]">
+                      수정 중인 상품
+                    </p>
+                    <p className="mt-1 text-sm text-[#4f4542]">
+                      {editingProduct.name} ·{" "}
+                      {getProductCode(editingProduct.id)}
+                    </p>
+                  </div>
+                ) : null}
+
                 <label className="block space-y-2">
                   <span className="text-sm font-semibold text-[#4f4542]">
                     상품명
@@ -306,7 +365,7 @@ export default function ManageProductPage() {
                       className="h-12 w-full rounded-lg border border-[#d2c3bf] bg-[#faf9f5] pl-10 pr-4 outline-none transition-all focus:border-[#7d562d] focus:ring-2 focus:ring-[#ffca98]"
                       placeholder="25000"
                       type="number"
-                      min="1"
+                      min="2"
                     />
                   </div>
                 </label>
@@ -379,13 +438,31 @@ export default function ManageProductPage() {
                 <ManagerNotice message={message} />
                 <ManagerNotice message={errorMessage} tone="error" />
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full rounded-lg bg-[#130805] py-4 text-sm font-semibold text-white shadow-lg shadow-[#130805]/10 transition-all hover:bg-[#7d562d] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#817471]"
-                >
-                  {isSubmitting ? "등록 중" : "상품 등록하기"}
-                </button>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  {editingProduct ? (
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      disabled={isSubmitting}
+                      className="rounded-lg border border-[#d2c3bf] px-5 py-4 text-sm font-semibold text-[#4f4542] transition-colors hover:border-[#7d562d] hover:text-[#130805] disabled:opacity-50 sm:w-32"
+                    >
+                      취소
+                    </button>
+                  ) : null}
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 rounded-lg bg-[#130805] py-4 text-sm font-semibold text-white shadow-lg shadow-[#130805]/10 transition-all hover:bg-[#7d562d] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#817471]"
+                  >
+                    {isSubmitting
+                      ? editingProduct
+                        ? "수정 중"
+                        : "등록 중"
+                      : editingProduct
+                        ? "상품 수정하기"
+                        : "상품 등록하기"}
+                  </button>
+                </div>
               </form>
             </div>
 
@@ -407,7 +484,7 @@ export default function ManageProductPage() {
                     상품 목록
                   </h2>
                   <p className="mt-1 text-sm text-[#4f4542]">
-                    등록된 상품을 확인하고 삭제할 수 있습니다.
+                    등록된 상품을 확인하고 수정하거나 삭제할 수 있습니다.
                   </p>
                 </div>
                 <button
@@ -420,13 +497,13 @@ export default function ManageProductPage() {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[680px] border-collapse text-left">
+                <table className="w-full min-w-[760px] border-collapse text-left">
                   <thead>
                     <tr className="bg-[#f4f4f0] text-xs font-bold uppercase tracking-wider text-[#4f4542]">
                       <th className="px-6 py-4">이미지</th>
                       <th className="px-6 py-4">상품명</th>
                       <th className="px-6 py-4">가격</th>
-                      <th className="sticky right-0 w-28 bg-[#f4f4f0] px-6 py-4 text-center shadow-[-10px_0_18px_rgba(244,244,240,0.85)]">
+                      <th className="sticky right-0 w-44 bg-[#f4f4f0] px-6 py-4 text-center shadow-[-10px_0_18px_rgba(244,244,240,0.85)]">
                         관리
                       </th>
                     </tr>
@@ -469,14 +546,24 @@ export default function ManageProductPage() {
                             {formatPrice(product.price)}
                           </td>
                           <td className="sticky right-0 bg-white px-6 py-4 text-center shadow-[-10px_0_18px_rgba(255,255,255,0.9)] group-hover:bg-[#f4f4f0] group-hover:shadow-[-10px_0_18px_rgba(244,244,240,0.9)]">
-                            <button
-                              type="button"
-                              onClick={() => handleRequestDelete(product)}
-                              disabled={!Number.isFinite(product.id)}
-                              className="inline-flex h-9 min-w-16 items-center justify-center whitespace-nowrap rounded-lg border border-[#d2c3bf] px-4 text-sm font-semibold text-[#93000a] transition-colors hover:border-[#ba1a1a] hover:bg-[#ffdad6] disabled:opacity-40"
-                            >
-                              삭제
-                            </button>
+                            <div className="flex justify-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleRequestEdit(product)}
+                                disabled={!Number.isFinite(product.id)}
+                                className="inline-flex h-9 min-w-16 items-center justify-center whitespace-nowrap rounded-lg border border-[#d2c3bf] px-4 text-sm font-semibold text-[#4f4542] transition-colors hover:border-[#7d562d] hover:bg-[#ffca98]/20 hover:text-[#130805] disabled:opacity-40"
+                              >
+                                수정
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRequestDelete(product)}
+                                disabled={!Number.isFinite(product.id)}
+                                className="inline-flex h-9 min-w-16 items-center justify-center whitespace-nowrap rounded-lg border border-[#d2c3bf] px-4 text-sm font-semibold text-[#93000a] transition-colors hover:border-[#ba1a1a] hover:bg-[#ffdad6] disabled:opacity-40"
+                              >
+                                삭제
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
