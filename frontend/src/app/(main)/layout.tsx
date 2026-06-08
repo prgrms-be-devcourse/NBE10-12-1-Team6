@@ -25,6 +25,17 @@ function NavUnderline({ isActive }: { isActive: boolean }) {
   );
 }
 
+function AdminButton() {
+  return (
+    <Link
+      href="/manager/manageproduct"
+      className="inline-flex h-11 items-center justify-center rounded-lg border border-[#d2c3bf] bg-white/40 px-4 text-sm font-semibold text-[#130805] shadow-sm shadow-[#130805]/5 transition-all duration-200 hover:border-[#7d562d] hover:bg-[#ffca98]/30 hover:text-[#7d562d] active:scale-95"
+    >
+      관리자
+    </Link>
+  );
+}
+
 function isActivePath(pathname: string, href: string) {
   if (href === "/") {
     return pathname === "/";
@@ -69,35 +80,32 @@ export default function MainLayout({
             </span>
             {SITE_NAME}
           </Link>
-          <div className="hidden items-center gap-8 md:flex">
-            <Link
-              href="/"
-              className={getNavLinkClass(isHomeActive)}
-            >
-              홈
-              <NavUnderline isActive={isHomeActive} />
-            </Link>
-            <Link
-              href="/products"
-              className={getNavLinkClass(isProductsActive)}
-            >
-              상품
-              <NavUnderline isActive={isProductsActive} />
-            </Link>
-            <Link
-              href="/products/payment"
-              className={getNavLinkClass(isCartActive)}
-            >
-              장바구니
-              <NavUnderline isActive={isCartActive} />
-            </Link>
-            <Link
-              href="/orders"
-              className={getNavLinkClass(isOrdersActive)}
-            >
-              주문 목록
-              <NavUnderline isActive={isOrdersActive} />
-            </Link>
+          <div className="flex items-center gap-4 md:gap-8">
+            <div className="hidden items-center gap-8 md:flex">
+              <Link href="/" className={getNavLinkClass(isHomeActive)}>
+                홈
+                <NavUnderline isActive={isHomeActive} />
+              </Link>
+              <Link
+                href="/products"
+                className={getNavLinkClass(isProductsActive)}
+              >
+                상품
+                <NavUnderline isActive={isProductsActive} />
+              </Link>
+              <Link
+                href="/products/payment"
+                className={getNavLinkClass(isCartActive)}
+              >
+                장바구니
+                <NavUnderline isActive={isCartActive} />
+              </Link>
+              <Link href="/orders" className={getNavLinkClass(isOrdersActive)}>
+                주문 목록
+                <NavUnderline isActive={isOrdersActive} />
+              </Link>
+            </div>
+            <AdminButton />
           </div>
         </nav>
       </header>

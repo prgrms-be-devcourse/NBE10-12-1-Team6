@@ -37,6 +37,7 @@ yarn-error.log*
 /docs/
 /.codex/
 /stitch_page/
+/.pnpm-store/
 
 # vercel
 .vercel
