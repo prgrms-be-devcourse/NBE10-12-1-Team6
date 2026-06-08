@@ -55,9 +55,7 @@ public class Order extends BaseEntity {
         this.status = status;
     }
 
-    /**
-     * 자동 합산 및 금액 재계산을 위한 도메인 메서드
-     */
+    // 자동 합산 및 금액 재계산을 위한 도메인 메서드
     public void addOrderItem(OrderItem newItem) {
         // 이미 주문 내역에 같은 상품이 있는지 검증
         this.orderItems.stream()
@@ -81,9 +79,7 @@ public class Order extends BaseEntity {
         calculateTotalPrice();
     }
 
-    /**
-     * 총 주문 금액을 계산하는 내부 메서드
-     */
+    // 총 주문 금액을 계산하는 내부 메서드
     private void calculateTotalPrice() {
         this.price = this.orderItems.stream()
                 .mapToInt(item -> item.getProductPrice() * item.getQuantity())

@@ -146,4 +146,10 @@ public class OrderService {
         }
 
     }
+
+    public Order modifyOrderStatus(Long id, OrderStatus status) {
+        Order order = getOrderById(id);
+        order.changeStatus(status);
+        return order;
+    }
 }
