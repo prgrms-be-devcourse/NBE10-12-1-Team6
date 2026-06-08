@@ -8,6 +8,9 @@ import com.back.domain.product.product.entity.Product;
 import com.back.domain.product.product.service.ProductService;
 import com.back.global.globalExceptionHandler.EmailNotValidException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -60,11 +63,21 @@ public class OrderService {
         return orderRepository.findByCreateDateBetween(getStartOfDate(start), getEndOfDate(end));
     }
 
+    public Page<Order> getOrderBetweenDayWithPaging(LocalDateTime start, LocalDateTime end, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return orderRepository.findByCreateDateBetween(getStartOfDate(start), getEndOfDate(end), pageable);
+    }
+
     public List<Order> getOrdersByEmail(String email) {
         if (checkIsNotValidEmail(email)) {
             throw new EmailNotValidException();
         }
         return orderRepository.findByEmail(email);
+    }
+
+    public Page<Order> getOrdersByEmailWithPaging(String email, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return orderRepository.findByEmail(email, pageable);
     }
 
     public Order addOrder(String email, String address1, String address2, String zipCode, List<OrderItem> orderItem) {

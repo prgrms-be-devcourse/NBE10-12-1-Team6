@@ -13,6 +13,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -101,6 +102,26 @@ public class ApiV1OrderController {
         );
     }
 
+    // 고객 주문 조회 (이메일 기준)
+    @GetMapping("/page")
+    @Operation(summary = "이메일 기준 주문 조회")
+    @Transactional(readOnly = true)
+    public RsData<List<OrderDto>> getOrdersByEmail(
+            @RequestParam String email,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<Order> orders = orderService.getOrdersByEmailWithPaging(email, page, size);
+        List<OrderDto> orderDtos = orders.stream()
+                .map(OrderDto::new)
+                .toList();
+
+        return new RsData<>(
+                "200-2",
+                "이메일(%s)의 주문 내역 조회에 성공했습니다.".formatted(email),
+                orderDtos
+        );
+    }
+
     // 주문 전체 조회 (관리자 - 날짜 범위 기준)
     @GetMapping("/admin")
     @Operation(summary = "기간별 주문 전체 조회 (관리자)")
@@ -113,6 +134,27 @@ public class ApiV1OrderController {
         List<OrderDto> orderDtos = orders.stream()
                 .map(OrderDto::new)
                 .toList();
+
+        return new RsData<>(
+                "200-3",
+                "주문 전체 조회에 성공했습니다.",
+                orderDtos
+        );
+    }
+
+    // 주문 전체 조회 (관리자 - 날짜 범위 기준)
+    @GetMapping("/admin/page")
+    @Operation(summary = "기간별 주문 전체 조회 (관리자)")
+    @Transactional(readOnly = true)
+    public RsData<List<OrderDto>> getOrdersBetween(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<Order> orders = orderService.getOrderBetweenDayWithPaging(start, end, page, size);
+
+        List<OrderDto> orderDtos = orders.stream().map(OrderDto::new).toList();
 
         return new RsData<>(
                 "200-3",
