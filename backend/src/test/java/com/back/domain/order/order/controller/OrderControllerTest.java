@@ -1,6 +1,7 @@
 package com.back.domain.order.order.controller;
 
 import com.back.domain.order.order.entity.Order;
+import com.back.domain.order.order.entity.OrderStatus;
 import com.back.domain.order.order.service.OrderService;
 import com.back.domain.order.orderitem.entity.OrderItem;
 import com.back.domain.product.product.entity.Product;
@@ -497,6 +498,32 @@ class OrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200-4"))
                 .andExpect(jsonPath("$.msg").value("%d번 주문이 삭제되었습니다.".formatted(id)));
+    }
+
+    @Test
+    @DisplayName("처리 후 상태의 주문은 삭제할 수 없다")
+    void deleteOrderFailAfterProcessingTest() throws Exception {
+        Product product = productService.create("test product", 10000, "test description", "test.jpg");
+        Order order = orderService.createOrder(
+                "after-processing@test.com",
+                "address1",
+                "address2",
+                "12345",
+                Map.of(product.getId(), 1)
+        );
+        orderService.modifyOrderStatus(order.getId(), OrderStatus.AFTER_PROCESSING);
+
+        ResultActions resultActions = mvc.perform(
+                        delete("/api/v1/orders/%d".formatted(order.getId()))
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1OrderController.class))
+                .andExpect(handler().methodName("deleteOrder"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.resultCode").value("400-2"))
+                .andExpect(jsonPath("$.msg").value("이미 처리가 완료된 주문은 삭제할 수 없습니다."));
     }
 
 }
