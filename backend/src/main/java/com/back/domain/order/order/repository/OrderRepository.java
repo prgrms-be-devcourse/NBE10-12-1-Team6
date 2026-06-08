@@ -30,5 +30,30 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Page<Order> findByEmail(String email, Pageable pageable);
 
+    // ref: https://medium.com/@odysseymoon/spring-data-jpa에서-groupby-처리하기-82cddc6e5d4a
+    @Query(value=
+            """
+                SELECT
+                    oi.product_id as id,
+                    SUM(oi.quantity) AS sales
+                    FROM ORDER_ITEMS as oi
+                    WHERE create_date > :start AND create_date < :end
+                    GROUP BY oi.product_id
+                    ORDER BY sales DESC
+            """
+            , nativeQuery = true)
+    List<ProductSalesSumInterface> findGroupByProduct(
+            LocalDateTime start, LocalDateTime end);
+
+    @Query(value=
+            """
+                SELECT
+                    SUM(ORDERS.price) AS sales
+                    FROM ORDERS
+                    WHERE create_date > :start AND create_date < :end
+            """
+            , nativeQuery = true)
+    Optional<SalesInterface> findSalesBetween(
+            LocalDateTime start, LocalDateTime end);
 
 }

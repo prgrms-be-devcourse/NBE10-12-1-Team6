@@ -1,6 +1,8 @@
 package com.back.domain.order.order.controller;
 
 import com.back.domain.order.order.dto.OrderDto;
+import com.back.domain.order.order.dto.ProductSaleDto;
+import com.back.domain.order.order.dto.ProductSalesSumInterface;
 import com.back.domain.order.order.entity.Order;
 import com.back.domain.order.order.entity.OrderStatus;
 import com.back.domain.order.order.service.OrderService;
@@ -163,6 +165,38 @@ public class ApiV1OrderController {
         );
     }
 
+    @GetMapping("/admin/sales")
+    @Operation(summary = "기간별 판매액 조회")
+    @Transactional(readOnly = true)
+    public RsData<Integer> getSalesBetween(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
+    ) {
+        int sales = orderService.getSales(start, end);
+        return new RsData<>(
+                "200-3",
+                "판매액 조회에 성공했습니다.",
+                sales
+        );
+    }
+
+    @GetMapping("/admin/sales/product")
+    @Operation(summary = "기간, 제품별 판매량 조회(최다판매순 정렬)")
+    @Transactional(readOnly = true)
+    public RsData<List<ProductSaleDto>> getProductSalesBetween(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
+    ) {
+        List<ProductSalesSumInterface> sales = orderService.getProductSalesSum(start, end);
+        List<ProductSaleDto> saleDtos = sales.stream().map(ProductSaleDto::new).toList();
+
+        return new RsData<>(
+                "200-3",
+                "제품별 판매량 조회에 성공했습니다.",
+                saleDtos
+        );
+    }
+
     // 주문 삭제
     @DeleteMapping("/{id}")
     @Operation(summary = "주문 삭제")
@@ -211,4 +245,5 @@ public class ApiV1OrderController {
                 new OrderDto(order)
         );
     }
+
 }
