@@ -71,4 +71,15 @@ public class GlobalExceptionHandler {
                 BAD_REQUEST
         );
     }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<RsData<Void>> handle(IllegalStateException ex) {
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "400-2",
+                        ex.getMessage()
+                ),
+                BAD_REQUEST
+        );
+    }
 }
