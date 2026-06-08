@@ -44,9 +44,11 @@ public class Order extends BaseEntity {
      * 자동 합산 및 금액 재계산을 위한 도메인 메서드
      */
     public void addOrderItem(OrderItem newItem) {
-        // 1. 이미 주문 내역에 같은 상품이 있는지 검증
+        // 이미 주문 내역에 같은 상품이 있는지 검증
         this.orderItems.stream()
-                .filter(item -> item.getProductId().equals(newItem.getProductId()))
+                .filter(item -> item.getProductId().equals(newItem.getProductId())
+                        && item.getProductPrice() == newItem.getProductPrice()
+                        && item.getProductName().equals(newItem.getProductName()))
                 .findFirst()
                 .ifPresentOrElse(
                         existingItem -> {
@@ -60,7 +62,7 @@ public class Order extends BaseEntity {
                         }
                 );
 
-        // 2. 상품이 추가/합산될 때마다 주문 총 금액 업데이트
+        // 상품이 추가/합산될 때마다 주문 총 금액 업데이트
         calculateTotalPrice();
     }
 
