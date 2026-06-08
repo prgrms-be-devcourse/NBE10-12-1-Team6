@@ -61,7 +61,7 @@ public class ApiV1ProductController {
 
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
-    public ProductDto getItem(@PathVariable int id) {
+    public ProductDto getItem(@PathVariable long id) {
         Product product = productService.findById(id).get();
 
         return new ProductDto(product);
@@ -82,7 +82,7 @@ public class ApiV1ProductController {
     @PutMapping("/{id}")
     @Transactional
     public RsData<Void> modify(
-            @PathVariable int id,
+            @PathVariable long id,
             @RequestBody @Valid ProductModifyReqBody reqBody
     ) {
         Product product = productService.findById(id).get();
@@ -97,7 +97,7 @@ public class ApiV1ProductController {
 
     @DeleteMapping("/{id}")
     @Transactional
-    public RsData<Void> delete(@PathVariable int id) {
+    public RsData<Void> delete(@PathVariable long id) {
         Product product = productService.findById(id).get();
 
         productService.delete(product);
