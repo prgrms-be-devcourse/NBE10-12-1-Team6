@@ -2,6 +2,7 @@ package com.back.domain.order.order.controller;
 
 import com.back.domain.order.order.entity.Order;
 import com.back.domain.order.order.service.OrderService;
+import com.back.domain.order.orderitem.entity.OrderItem;
 import com.back.domain.product.product.entity.Product;
 import com.back.domain.product.product.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,11 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -72,8 +73,6 @@ class OrderControllerTest {
     @Test
     @DisplayName("주문 생성 테스트 - 서울시 강남구")
     void createOrderTest1() throws Exception {
-        Product product = productService.create("에티오피아 예가체프 G1", 24000, "화사한 꽃향기와 세련된 산미가 은은하게 이어지는 싱글 오리진 원두입니다.", "ethiopia.jpg");
-
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/orders")
@@ -81,7 +80,7 @@ class OrderControllerTest {
                                 .content(
                                         getOrderJson("test@test.com",
                                                 "서울시 강남구", "강남대로 123", "06000",
-                                                product.getId(), 2))
+                                                1L, 2))
                 )
                 .andDo(print());
 
@@ -104,7 +103,8 @@ class OrderControllerTest {
     @Test
     @DisplayName("주문 생성 테스트 - 서울시 동대문구")
     void createOrderTest2() throws Exception {
-        Product product = productService.create("윈터 가든 블렌드", 18000, "고소한 견과 향과 부드러운 단맛이 균형을 이루는 시즌 블렌드입니다.", "winter.jpg");
+
+        Product product = productService.findById(1).get();
 
         ResultActions resultActions = mvc
                 .perform(
@@ -113,7 +113,7 @@ class OrderControllerTest {
                                 .content(
                                         getOrderJson("test@test.com",
                                                 "서울시 동대문구", "왕산로 456", "02600",
-                                                product.getId(), 1))
+                                                1L, 1))
                 )
                 .andDo(print());
 
@@ -127,16 +127,17 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.data.address1").value("서울시 동대문구"))
                 .andExpect(jsonPath("$.data.address2").value("왕산로 456"))
                 .andExpect(jsonPath("$.data.zipCode").value("02600"))
-                .andExpect(jsonPath("$.data.price").value(18000))
+                .andExpect(jsonPath("$.data.price").value(24000))
                 .andExpect(jsonPath("$.data.orderItems.length()").value(1))
-                .andExpect(jsonPath("$.data.orderItems[0].productName").value("윈터 가든 블렌드"))
+                .andExpect(jsonPath("$.data.orderItems[0].productName").value(product.getName()))
                 .andExpect(jsonPath("$.data.orderItems[0].quantity").value(1));
     }
 
     @Test
     @DisplayName("주문 생성 테스트 - 경기도 남양주시")
     void createOrderTest3() throws Exception {
-        Product product = productService.create("콜롬비아 수프리모", 21000, "깨끗한 단맛과 묵직한 바디감으로 매일 마시기 좋은 원두입니다.", "colombia.jpg");
+
+        Product product = productService.findById(1).get();
 
         ResultActions resultActions = mvc
                 .perform(
@@ -161,16 +162,17 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.data.address1").value("경기도 남양주시"))
                 .andExpect(jsonPath("$.data.address2").value("경춘로 789"))
                 .andExpect(jsonPath("$.data.zipCode").value("12100"))
-                .andExpect(jsonPath("$.data.price").value(63000))
+                .andExpect(jsonPath("$.data.price").value(product.getPrice() * 3))
                 .andExpect(jsonPath("$.data.orderItems.length()").value(1))
-                .andExpect(jsonPath("$.data.orderItems[0].productName").value("콜롬비아 수프리모"))
+                .andExpect(jsonPath("$.data.orderItems[0].productName").value(product.getName()))
                 .andExpect(jsonPath("$.data.orderItems[0].quantity").value(3));
     }
 
     @Test
     @DisplayName("동일 이메일 주문 생성 - 같은날 같은 시간")
     void createSameEmailOrderTest1() throws Exception {
-        Product product = productService.create("콜롬비아 수프리모", 21000, "깨끗한 단맛과 묵직한 바디감으로 매일 마시기 좋은 원두입니다.", "colombia.jpg");
+
+        Product product = productService.findById(1).get();
 
         ResultActions resultActions1 = mvc
                 .perform(
@@ -181,7 +183,7 @@ class OrderControllerTest {
                                                 "경기도 남양주시",
                                                 "경춘로 789",
                                                 "12100",
-                                                product.getId(), 3))
+                                                1L, 3))
                 )
                 .andDo(print());
 
@@ -194,7 +196,7 @@ class OrderControllerTest {
                                                 "경기도 남양주시",
                                                 "경춘로 789",
                                                 "12100",
-                                                product.getId(), 3))
+                                                1L, 3))
                 )
                 .andDo(print());
 
@@ -203,9 +205,9 @@ class OrderControllerTest {
                 .andExpect(handler().methodName("createOrder"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
-                .andExpect(jsonPath("$.data.price").value(126000))
+                .andExpect(jsonPath("$.data.price").value(product.getPrice() * 6))
                 .andExpect(jsonPath("$.data.orderItems.length()").value(1))
-                .andExpect(jsonPath("$.data.orderItems[0].productName").value("콜롬비아 수프리모"))
+                .andExpect(jsonPath("$.data.orderItems[0].productName").value(product.getName()))
                 .andExpect(jsonPath("$.data.orderItems[0].quantity").value(6));
 
     }
@@ -213,7 +215,7 @@ class OrderControllerTest {
     @Test
     @DisplayName("동일 이메일 주문 생성 - 경계시간")
     void createSameEmailOrderTest2() throws Exception {
-        Product product = productService.create("콜롬비아 수프리모", 21000, "깨끗한 단맛과 묵직한 바디감으로 매일 마시기 좋은 원두입니다.", "colombia.jpg");
+        Product product = productService.findById(1).get();
 
         try (MockedStatic<LocalDateTime> localDateTimeMockedStatic = Mockito.mockStatic(LocalDateTime.class, Mockito.CALLS_REAL_METHODS)) {
 
@@ -230,7 +232,7 @@ class OrderControllerTest {
                                                     "경기도 남양주시",
                                                     "경춘로 789",
                                                     "12100",
-                                                    product.getId(), 3))
+                                                    1L, 3))
                     )
                     .andDo(print());
 
@@ -249,7 +251,7 @@ class OrderControllerTest {
                                                     "경기도 남양주시",
                                                     "경춘로 789",
                                                     "12100",
-                                                    product.getId(), 3))
+                                                    1L, 3))
                     )
                     .andDo(print());
 
@@ -259,9 +261,9 @@ class OrderControllerTest {
                     .andExpect(handler().methodName("createOrder"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.resultCode").value("200-1"))
-                    .andExpect(jsonPath("$.data.price").value(63000))
+                    .andExpect(jsonPath("$.data.price").value(product.getPrice() * 3))
                     .andExpect(jsonPath("$.data.orderItems.length()").value(1))
-                    .andExpect(jsonPath("$.data.orderItems[0].productName").value("콜롬비아 수프리모"))
+                    .andExpect(jsonPath("$.data.orderItems[0].productName").value(product.getName()))
                     .andExpect(jsonPath("$.data.orderItems[0].quantity").value(3));
         }
     }
@@ -330,7 +332,7 @@ class OrderControllerTest {
                                                 "경기도 남양주시",
                                                 "경춘로 789",
                                                 "12100",
-                                                1L, 3))
+                                                100L, 3))
                 )
                 .andDo(print());
 
@@ -346,8 +348,6 @@ class OrderControllerTest {
     @DisplayName("주문 생성 실패 테스트 - 이메일 미입력")
     void createOrderFailTest2() throws Exception {
 
-        Product product = productService.create("콜롬비아 수프리모", 21000, "깨끗한 단맛과 묵직한 바디감으로 매일 마시기 좋은 원두입니다.", "colombia.jpg");
-
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/orders")
@@ -357,7 +357,7 @@ class OrderControllerTest {
                                                 "경기도 남양주시",
                                                 "경춘로 789",
                                                 "12100",
-                                                product.getId(), 3))
+                                                1L, 3))
                 )
                 .andDo(print());
 
@@ -373,8 +373,6 @@ class OrderControllerTest {
     @DisplayName("주문 생성 실패 테스트 - 이메일 형식 오류")
     void createOrderFailTest3() throws Exception {
 
-        Product product = productService.create("콜롬비아 수프리모", 21000, "깨끗한 단맛과 묵직한 바디감으로 매일 마시기 좋은 원두입니다.", "colombia.jpg");
-
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/orders")
@@ -384,7 +382,7 @@ class OrderControllerTest {
                                                 "경기도 남양주시",
                                                 "경춘로 789",
                                                 "12100",
-                                                product.getId(), 3))
+                                                1L, 3))
                 )
                 .andDo(print());
 
@@ -400,19 +398,17 @@ class OrderControllerTest {
     @DisplayName("주문 다건조회 테스트 - 이메일 입력")
     void getOrdersByEmailTest() throws Exception {
 
-        Product product = productService.create("콜롬비아 수프리모", 21000, "깨끗한 단맛과 묵직한 바디감으로 매일 마시기 좋은 원두입니다.", "colombia.jpg");
-
-        Order order1 = orderService.createOrder("test@test.com",
+        orderService.createOrder("test@test.com",
                 "경기도 남양주시", "경춘로 789", "12100",
-                Map.of(product.getId(), 3));
+                Map.of(1L, 3));
 
-        Order order2 = orderService.createOrder("test@test.com",
+        orderService.createOrder("test@test.com",
                 "대구광역시 수성구", "노변로 55", "42268",
-                Map.of(product.getId(), 3));
+                Map.of(1L, 3));
 
-        Order order3 = orderService.createOrder("test@test.com",
+        orderService.createOrder("test@test.com",
                 "경기도 남양주시", "경춘로 789", "12100",
-                Map.of(product.getId(), 3));
+                Map.of(1L, 3));
 
         ResultActions resultActions = mvc.perform(
                 get("/api/v1/orders")
@@ -421,30 +417,86 @@ class OrderControllerTest {
                 )
                 .andDo(print());
 
+        List<Order> orders = orderService.getOrdersByEmail("test@test.com");
+
         resultActions
                 .andExpect(handler().handlerType(ApiV1OrderController.class))
                 .andExpect(handler().methodName("getOrdersByEmail"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200-2"))
-                .andExpect(jsonPath("$.data[0].id").value(order1.getId()))
-                .andExpect(jsonPath("$.data[0].price").value(126000))
-                .andExpect(jsonPath("$.data[0].orderItems.length()").value(1))
-                .andExpect(jsonPath("$.data[0].orderItems[0].productName").value("콜롬비아 수프리모"))
-                .andExpect(jsonPath("$.data[0].orderItems[0].quantity").value(6))
-                .andExpect(jsonPath("$.data[1].id").value(order2.getId()))
-                .andExpect(jsonPath("$.data[1].price").value(63000))
-                .andExpect(jsonPath("$.data[1].orderItems.length()").value(1))
-                .andExpect(jsonPath("$.data[1].orderItems[0].productName").value("콜롬비아 수프리모"))
-                .andExpect(jsonPath("$.data[1].orderItems[0].quantity").value(3));
+                .andExpect(jsonPath("$.resultCode").value("200-2"));
+
+        for (int i = 0; i < orders.size(); i++) {
+            Order order = orders.get(i);
+            List<OrderItem> orderItems = orders.get(i).getOrderItems();
+
+            resultActions
+                    .andExpect(jsonPath("$.data[%d].id".formatted(i)).value(order.getId()))
+                    .andExpect(jsonPath("$.data[%d].orderItems.length()".formatted(i)).value(orderItems.size()));
+
+            for (int j = 0; j < orderItems.size(); j++) {
+                OrderItem orderItem = orderItems.get(j);
+
+                resultActions
+                        .andExpect(jsonPath("$.data[%d].orderItems[%d].productName".formatted(i, j)).value(orderItem.getProductName()))
+                        .andExpect(jsonPath("$.data[%d].orderItems[%d].quantity".formatted(i, j)).value(orderItem.getQuantity()));
+
+            }
+
+        }
+
+        /*
+                    .andExpect(jsonPath("$.data[1].id").value(order2.getId()))
+                    .andExpect(jsonPath("$.data[1].price").value(product.getPrice() * 3))
+                    .andExpect(jsonPath("$.data[1].orderItems.length()").value(1))
+                    .andExpect(jsonPath("$.data[1].orderItems[0].productName").value(product.getName()))
+                    .andExpect(jsonPath("$.data[1].orderItems[0].quantity").value(3));*/
+
     }
 
     @Test
     @DisplayName("주문 단건조회 테스트 - 상세 주문 내역")
     void getOrderTest() throws Exception {
+
+        long orderId = 2;
+
+        ResultActions resultActions = mvc.perform(
+                        get("/api/v1/orders/%d/items".formatted(orderId))
+                )
+                .andDo(print());
+
+        Order order = orderService.getOrderById(orderId);
+        List<OrderItem> orderItems = order.getOrderItems();
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1OrderController.class))
+                .andExpect(handler().methodName("getOrderItems"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(orderItems.size()));
+
+        for (int i = 0; i < orderItems.size(); i++) {
+            OrderItem orderItem = orderItems.get(i);
+
+            resultActions
+                    .andExpect(jsonPath("$.data[%d].productId".formatted(i)).value(orderItem.getProductId()))
+                    .andExpect(jsonPath("$.data[%d].quantity".formatted(i)).value(orderItem.getQuantity()));
+        }
     }
 
     @Test
     @DisplayName("주문 삭제 테스트")
-    void deleteOrderTest() {
+    void deleteOrderTest() throws Exception {
+
+        int id = 1;
+        ResultActions resultActions = mvc.perform(
+                        delete("/api/v1/orders/%d".formatted(id)
+                )).andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1OrderController.class))
+                .andExpect(handler().methodName("deleteOrder"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200-4"))
+                .andExpect(jsonPath("$.msg").value("%d번 주문이 삭제되었습니다.".formatted(id)));
     }
+
 }
