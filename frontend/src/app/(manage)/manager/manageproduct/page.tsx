@@ -17,6 +17,9 @@ import {
   getProducts,
   type Product,
 } from "@/app/api";
+import ManagerNotice from "../../../../../component/manage/ManagerNotice";
+import ManagerPageHeader from "../../../../../component/manage/ManagerPageHeader";
+import ManagerPagination from "../../../../../component/manage/ManagerPagination";
 import { formatPrice } from "@/lib/format";
 
 const PAGE_SIZE = 5;
@@ -210,21 +213,14 @@ export default function ManageProductPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-5 py-10 text-[#1b1c1a] md:px-10 lg:px-16">
-      <header className="mb-10">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-[#7d562d]">
-          Admin
-        </p>
-        <h1 className="text-4xl font-bold leading-tight text-[#130805]">
-          상품 관리
-        </h1>
-        <p className="mt-3 max-w-2xl leading-7 text-[#4f4542]">
-          장인 정신이 담긴 원두 상품을 등록하고, 현재 상품 목록을 관리합니다.
-        </p>
-      </header>
+      <ManagerPageHeader
+        title="상품 관리"
+        description="장인 정신이 담긴 원두 상품을 등록하고, 현재 상품 목록을 관리합니다."
+      />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <section className="xl:col-span-5">
-          <div className="rounded-xl border border-[#d2c3bf]/50 bg-white p-6 shadow-sm md:p-8">
+          <div className="rounded-lg border border-[#d2c3bf]/50 bg-white p-6 shadow-sm md:p-8">
             <div className="mb-6 flex items-center gap-3">
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ffca98] text-lg font-bold text-[#7a532a]">
                 +
@@ -287,7 +283,7 @@ export default function ManageProductPage() {
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-all ${
+                  className={`relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-all ${
                     isDragging
                       ? "border-[#7d562d] bg-[#ffca98]/15"
                       : "border-[#d2c3bf] bg-[#faf9f5] hover:border-[#7d562d] hover:bg-[#ffca98]/10"
@@ -332,16 +328,8 @@ export default function ManageProductPage() {
                 />
               </label>
 
-              {message ? (
-                <p className="rounded-lg bg-[#1e3932]/10 px-4 py-3 text-sm font-semibold text-[#1e3932]">
-                  {message}
-                </p>
-              ) : null}
-              {errorMessage ? (
-                <p className="rounded-lg bg-[#ffdad6] px-4 py-3 text-sm font-semibold text-[#93000a]">
-                  {errorMessage}
-                </p>
-              ) : null}
+              <ManagerNotice message={message} />
+              <ManagerNotice message={errorMessage} tone="error" />
 
               <button
                 type="submit"
@@ -353,19 +341,16 @@ export default function ManageProductPage() {
             </form>
           </div>
 
-          <div className="mt-6 flex items-center justify-between rounded-xl bg-[#2c1e1a] p-6 text-[#f9f5eb]">
+          <div className="mt-6 flex items-center justify-between rounded-lg bg-[#2c1e1a] p-6 text-[#f9f5eb]">
             <div>
               <p className="text-sm text-[#dac1bb]">현재 운영 상품</p>
               <p className="mt-1 text-3xl font-bold">{products.length} Items</p>
-            </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f9f5eb]/10 text-xl">
-              □
             </div>
           </div>
         </section>
 
         <section className="xl:col-span-7">
-          <div className="overflow-hidden rounded-xl border border-[#d2c3bf]/50 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-lg border border-[#d2c3bf]/50 bg-white shadow-sm">
             <div className="flex items-center justify-between border-b border-[#d2c3bf]/30 bg-white px-6 py-5 md:px-8">
               <div>
                 <h2 className="text-2xl font-semibold text-[#130805]">
@@ -397,7 +382,10 @@ export default function ManageProductPage() {
                 <tbody className="divide-y divide-[#d2c3bf]/30">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-[#4f4542]">
+                      <td
+                        colSpan={4}
+                        className="px-6 py-12 text-center text-[#4f4542]"
+                      >
                         상품 목록을 불러오는 중입니다.
                       </td>
                     </tr>
@@ -433,7 +421,7 @@ export default function ManageProductPage() {
                             type="button"
                             onClick={() => handleDelete(product.id)}
                             disabled={!Number.isFinite(product.id)}
-                            className="rounded-lg border border-[#d2c3bf] px-4 py-2 text-sm font-semibold text-[#93000a] transition-colors hover:border-[#ba1a1a] hover:bg-[#ffdad6]"
+                            className="min-w-16 whitespace-nowrap rounded-lg border border-[#d2c3bf] px-4 py-2 text-sm font-semibold text-[#93000a] transition-colors hover:border-[#ba1a1a] hover:bg-[#ffdad6]"
                           >
                             삭제
                           </button>
@@ -442,7 +430,10 @@ export default function ManageProductPage() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-[#4f4542]">
+                      <td
+                        colSpan={4}
+                        className="px-6 py-12 text-center text-[#4f4542]"
+                      >
                         등록된 상품이 없습니다.
                       </td>
                     </tr>
@@ -451,42 +442,13 @@ export default function ManageProductPage() {
               </table>
             </div>
 
-            <div className="flex items-center justify-center gap-2 border-t border-[#d2c3bf]/30 bg-[#f4f4f0]/60 px-6 py-4">
-              <button
-                type="button"
-                onClick={() => setPage((prevPage) => Math.max(1, prevPage - 1))}
-                disabled={currentPage === 1}
-                className="flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-semibold text-[#4f4542] transition-colors hover:bg-[#e3e2df] disabled:opacity-40"
-              >
-                이전
-              </button>
-              {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-                (pageNumber) => (
-                  <button
-                    key={pageNumber}
-                    type="button"
-                    onClick={() => setPage(pageNumber)}
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold transition-colors ${
-                      currentPage === pageNumber
-                        ? "bg-[#130805] text-white"
-                        : "text-[#4f4542] hover:bg-[#e3e2df]"
-                    }`}
-                  >
-                    {pageNumber}
-                  </button>
-                ),
-              )}
-              <button
-                type="button"
-                onClick={() =>
-                  setPage((prevPage) => Math.min(totalPages, prevPage + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-semibold text-[#4f4542] transition-colors hover:bg-[#e3e2df] disabled:opacity-40"
-              >
-                다음
-              </button>
-            </div>
+            <ManagerPagination
+              currentPage={currentPage}
+              pageSize={PAGE_SIZE}
+              totalItems={products.length}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </div>
         </section>
       </div>

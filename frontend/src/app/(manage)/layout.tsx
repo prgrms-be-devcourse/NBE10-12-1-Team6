@@ -10,12 +10,12 @@ const navItems = [
   {
     href: "/manager/manageproduct",
     label: "상품 관리",
-    icon: "□",
+    icon: "P",
   },
   {
     href: "/manager/manageorder",
     label: "주문 관리",
-    icon: "≡",
+    icon: "O",
   },
 ];
 
@@ -46,13 +46,18 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold transition-all duration-200 ${
+                className={`group relative flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold transition-all duration-200 ${
                   isActive
-                    ? "bg-[#ffca98] text-[#7a532a]"
+                    ? "bg-[#ffca98] text-[#7a532a] shadow-sm shadow-[#7d562d]/10"
                     : "text-[#4f4542] hover:bg-[#e9e8e4] hover:text-[#130805]"
                 }`}
               >
-                <span className="flex h-6 w-6 items-center justify-center rounded-md border border-current/20 text-xs">
+                <span
+                  className={`absolute left-0 h-6 w-1 rounded-r-full bg-[#7d562d] transition-opacity ${
+                    isActive ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+                <span className="flex h-7 w-7 items-center justify-center rounded-md border border-current/20 text-xs font-bold">
                   {item.icon}
                 </span>
                 {item.label}
@@ -82,7 +87,7 @@ export default function ManageLayout({ children }: ManageLayoutProps) {
                   href={item.href}
                   className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
                     isActive
-                      ? "bg-[#ffca98] text-[#7a532a]"
+                      ? "bg-[#ffca98] text-[#7a532a] shadow-sm shadow-[#7d562d]/10"
                       : "text-[#4f4542] hover:bg-[#e9e8e4]"
                   }`}
                 >
