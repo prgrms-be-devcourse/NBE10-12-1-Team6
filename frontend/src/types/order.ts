@@ -3,6 +3,12 @@ export type OrderItemRequest = {
   quantity: number;
 };
 
+export type OrderStatus = "BEFORE_PROCESSING" | "AFTER_PROCESSING";
+
+export type UpdateOrderStatusRequest = {
+  status: OrderStatus;
+};
+
 export type CreateOrderRequest = {
   email: string;
   zipCode: string;
@@ -27,7 +33,7 @@ export type Order = {
   zipCode: string;
   address1: string;
   address2: string;
-  status: string;
+  status: OrderStatus;
   price: number;
   orderItems: OrderItem[];
 };
