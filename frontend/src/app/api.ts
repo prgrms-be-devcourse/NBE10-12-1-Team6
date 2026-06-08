@@ -4,6 +4,7 @@ export {
   createOrder,
   deleteOrder,
   getAdminOrders,
+  getOrderItems,
   getOrders,
   updateOrderStatus,
 } from "@/lib/api/orders";
