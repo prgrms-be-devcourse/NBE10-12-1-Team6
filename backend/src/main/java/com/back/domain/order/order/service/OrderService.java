@@ -25,6 +25,10 @@ public class OrderService {
     private static final LocalTime baseTime = LocalTime.of(14, 0, 0);
     private static final LocalTime endTime = baseTime.minusNanos(1);
 
+    public long count() {
+        return orderRepository.count();
+    }
+
     private static LocalDateTime getStartOfDate(LocalDateTime day) {
         LocalDate date = day.toLocalDate();
 
