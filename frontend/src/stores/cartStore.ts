@@ -87,6 +87,11 @@ export const useCartStore = create<CartState>()(
         typeof window === "undefined" ? noopStorage : window.localStorage,
       ),
       partialize: (state) => ({ items: state.items }),
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        ...(persistedState as Partial<CartState>),
+        lastAddedAt: 0,
+      }),
     },
   ),
 );

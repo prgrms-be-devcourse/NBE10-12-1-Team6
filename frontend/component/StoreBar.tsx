@@ -11,17 +11,18 @@ const HIDE_DELAY = Number(
 export default function StoreBar() {
   const [isVisible, setIsVisible] = useState(false);
   const timerId = useRef<number | undefined>(undefined);
-  const didMount = useRef(false);
   const lastAddedAt = useCartStore((state) => state.lastAddedAt);
+  const seenLastAddedAt = useRef(lastAddedAt);
   const totalQuantity = useCartStore((state) =>
     state.items.reduce((total, item) => total + item.quantity, 0),
   );
 
   useEffect(() => {
-    if (!didMount.current) {
-      didMount.current = true;
+    if (lastAddedAt <= seenLastAddedAt.current) {
       return;
     }
+
+    seenLastAddedAt.current = lastAddedAt;
 
     if (lastAddedAt < 1 || totalQuantity < 1) {
       return;
