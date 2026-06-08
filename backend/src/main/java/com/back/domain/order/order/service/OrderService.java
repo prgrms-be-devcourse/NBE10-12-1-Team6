@@ -1,5 +1,6 @@
 package com.back.domain.order.order.service;
 
+import com.back.domain.order.order.dto.ProductSalesSumInterface;
 import com.back.domain.order.order.entity.Order;
 import com.back.domain.order.order.entity.OrderStatus;
 import com.back.domain.order.order.repository.OrderRepository;
@@ -164,5 +165,13 @@ public class OrderService {
         Order order = getOrderById(id);
         order.changeStatus(status);
         return order;
+    }
+
+    public List<ProductSalesSumInterface> getProductSalesSum(LocalDateTime start, LocalDateTime end) {
+        return orderRepository.findGroupByProduct(start, end);
+    }
+
+    public int getSales(LocalDateTime start, LocalDateTime end) {
+        return orderRepository.findSalesBetween(start, end).get().getSales();
     }
 }
