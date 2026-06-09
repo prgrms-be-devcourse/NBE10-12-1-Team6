@@ -91,23 +91,6 @@ public class ApiV1OrderController {
     @GetMapping
     @Operation(summary = "이메일 기준 주문 조회")
     @Transactional(readOnly = true)
-    public RsData<List<OrderDto>> getOrdersByEmail(@RequestParam String email) {
-        List<Order> orders = orderService.getOrdersByEmail(email);
-        List<OrderDto> orderDtos = orders.stream()
-                .map(OrderDto::new)
-                .toList();
-
-        return new RsData<>(
-                "200-2",
-                "이메일(%s)의 주문 내역 조회에 성공했습니다.".formatted(email),
-                orderDtos
-        );
-    }
-
-    // 고객 주문 조회 (이메일 기준)
-    @GetMapping("/page")
-    @Operation(summary = "이메일 기준 주문 조회")
-    @Transactional(readOnly = true)
     public RsData<Page<OrderDto>> getOrdersByEmail(
             @RequestParam String email,
             @RequestParam(defaultValue = "0") int page,
@@ -126,32 +109,12 @@ public class ApiV1OrderController {
     @GetMapping("/admin")
     @Operation(summary = "기간별 주문 전체 조회 (관리자)")
     @Transactional(readOnly = true)
-    public RsData<List<OrderDto>> getOrdersBetween(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
-    ) {
-        List<Order> orders = orderService.getOrderBetweenDay(start, end);
-        List<OrderDto> orderDtos = orders.stream()
-                .map(OrderDto::new)
-                .toList();
-
-        return new RsData<>(
-                "200-3",
-                "주문 전체 조회에 성공했습니다.",
-                orderDtos
-        );
-    }
-
-    // 주문 전체 조회 (관리자 - 날짜 범위 기준)
-    @GetMapping("/admin/page")
-    @Operation(summary = "기간별 주문 전체 조회 (관리자)")
-    @Transactional(readOnly = true)
     public RsData<Page<OrderDto>> getOrdersBetween(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "[\"처리전\", \"처리후\"]") List<OrderStatus> status
+            @RequestParam(defaultValue = "BEFORE_PROCESSING,AFTER_PROCESSING") List<OrderStatus> status
     ) {
         Page<Order> orders = orderService.getOrderBetweenDayWithPaging(start, end, status, page, size);
 
