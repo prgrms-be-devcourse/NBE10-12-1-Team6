@@ -11,6 +11,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,6 +62,19 @@ public class ApiV1ProductController {
                 .stream()
                 .map(ProductDto::new)
                 .toList();
+    }
+
+    @GetMapping("/page")
+    @Transactional(readOnly = true)
+    @Operation(summary = "상품 목록 조회(페이징)")
+    public Page<ProductDto> getItems(
+            @RequestParam(defaultValue="") String searchTerm,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<Product> items = productService.findByNameContainingOrDescriptionContaining(searchTerm, page, size);
+
+        return items.map(ProductDto::new);
     }
 
     @GetMapping("/{id}")

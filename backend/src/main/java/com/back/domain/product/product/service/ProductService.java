@@ -3,6 +3,9 @@ package com.back.domain.product.product.service;
 import com.back.domain.product.product.entity.Product;
 import com.back.domain.product.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,11 +34,22 @@ public class ProductService {
         return productRepository.findAll();
     }
 
+    public Page<Product> findAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.findAll(pageable);
+    }
+
     public void modify(Product product, String name, int price, String description, String imageUrl) {
         product.modify(name, price, description, imageUrl);
     }
 
     public void delete(Product product) {
         productRepository.delete(product);
+    }
+
+    public Page<Product> findByNameContainingOrDescriptionContaining(String searchTerm, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.findByNameContainingOrDescriptionContaining(searchTerm, searchTerm, pageable);
     }
 }
