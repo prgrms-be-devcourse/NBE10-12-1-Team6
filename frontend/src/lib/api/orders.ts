@@ -34,7 +34,7 @@ export async function getOrders(
     size: size.toString(),
   });
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/orders/page?${query.toString()}`);
+  const response = await fetch(`${API_BASE_URL}/api/v1/orders?${query.toString()}`);
   if (!response.ok) throw new Error("주문 내역 조회에 실패했습니다.");
   const rs = await response.json();
   return rs.data;
@@ -56,7 +56,7 @@ export async function getAdminOrders(
   });
   status.forEach((s) => query.append("status", s));
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/orders/admin/page?${query.toString()}`);
+  const response = await fetch(`${API_BASE_URL}/api/v1/orders/admin?${query.toString()}`);
   if (!response.ok) throw new Error("주문 내역 조회에 실패했습니다.");
   const rs = await response.json();
   return rs.data;

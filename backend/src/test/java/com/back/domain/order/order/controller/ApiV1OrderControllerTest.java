@@ -293,7 +293,7 @@ class ApiV1OrderControllerTest {
     }
 
     @Test
-    @DisplayName("주문 다건조회 테스트 - 이메일 입력")
+    @DisplayName("주문 다건조회 테스트 - 이메일 입력 (페이징 디폴트값 검증)")
     void getOrdersByEmailTest() throws Exception {
         orderService.createOrder("lemon@test.com", "경기도 남양주시", "경춘로 789", "12100", Map.of(testProduct.getId(), 3));
         orderService.createOrder("lemon@test.com", "대구광역시 수성구", "노변로 55", "42268", Map.of(testProduct.getId(), 3));
@@ -309,11 +309,12 @@ class ApiV1OrderControllerTest {
                 .andExpect(handler().methodName("getOrdersByEmail"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200-2"))
-                .andExpect(jsonPath("$.data.length()").value(orders.size()));
+                .andExpect(jsonPath("$.data.size").value(10))
+                .andExpect(jsonPath("$.data.content.length()").value(orders.size()));
 
         for (int i = 0; i < orders.size(); i++) {
             resultActions
-                    .andExpect(jsonPath("$.data[%d].id".formatted(i)).value(orders.get(i).getId()));
+                    .andExpect(jsonPath("$.data.content[%d].id".formatted(i)).value(orders.get(i).getId()));
         }
                 /*
                     .andExpect(jsonPath("$.data[1].id").value(order2.getId()))
@@ -450,7 +451,7 @@ class ApiV1OrderControllerTest {
         orderService.createOrder("pineapple@test.com", "서울시 강남구", "강남대로 123", "06000", Map.of(testProduct.getId(), 1));
         orderService.createOrder("pineapple@test.com", "서울시 종로구", "종로 456", "03000", Map.of(testProduct.getId(), 2));
 
-        ResultActions resultActions = mvc.perform(get("/api/v1/orders/page")
+        ResultActions resultActions = mvc.perform(get("/api/v1/orders")
                         .param("email", "pineapple@test.com")
                         .param("page", "0")
                         .param("size", "5"))
@@ -467,7 +468,7 @@ class ApiV1OrderControllerTest {
     }
 
     @Test
-    @DisplayName("관리자 기간별 주문 조회")
+    @DisplayName("관리자 기간별 주문 조회 (페이징 디폴트값 검증)")
     void getOrdersBetweenTest() throws Exception {
         try (MockedStatic<LocalDateTime> ldt = Mockito.mockStatic(LocalDateTime.class, Mockito.CALLS_REAL_METHODS)) {
             ldt.when(LocalDateTime::now).thenReturn(ADMIN_TEST_TIME);
@@ -485,8 +486,9 @@ class ApiV1OrderControllerTest {
                     .andExpect(handler().methodName("getOrdersBetween"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.resultCode").value("200-3"))
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data.length()").value(2));
+                    .andExpect(jsonPath("$.data.size").value(10))
+                    .andExpect(jsonPath("$.data.content").isArray())
+                    .andExpect(jsonPath("$.data.content.length()").value(2));
         }
     }
 
@@ -499,7 +501,7 @@ class ApiV1OrderControllerTest {
             orderService.createOrder("strawberry1@test.com", "서울시 강남구", "강남대로 123", "06000", Map.of(testProduct.getId(), 1));
             orderService.createOrder("strawberry2@test.com", "서울시 종로구", "종로 456", "03000", Map.of(testProduct.getId(), 2));
 
-            ResultActions resultActions = mvc.perform(get("/api/v1/orders/admin/page")
+            ResultActions resultActions = mvc.perform(get("/api/v1/orders/admin")
                             .param("start", ADMIN_TEST_START)
                             .param("end", ADMIN_TEST_END)
                             .param("status", "BEFORE_PROCESSING")
