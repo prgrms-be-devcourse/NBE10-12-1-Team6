@@ -4,6 +4,7 @@ import com.back.domain.product.product.dto.ProductDto;
 import com.back.domain.product.product.entity.Product;
 import com.back.domain.product.product.service.ProductService;
 import com.back.global.rsData.RsData;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -23,19 +24,21 @@ public class ApiV1ProductController {
     private final ProductService productService;
 
     public record ProductCreateReqBody(
-            @NotBlank
-            @Size(min = 2)
+            @NotBlank(message = "상품명을 입력해주세요.")
+            @Size(min = 2, message = "제목은 두 글자 이상 입력해주세요.")
             String name,
-            @Min(2)
+            @Min(value = 2, message = "가격은 2원 이상으로 입력해주세요.")
             int price,
-            @NotBlank
-            @Size(min = 2)
+            @NotBlank(message = "상품설명을 입력해주세요.")
+            @Size(min = 2, message = "상품설명은 두 글자 이상 입력해주세요.")
             String description,
+            @NotBlank(message = "상품 이미지를 업로드하거나 이미지 URL을 입력해주세요.")
             String imageUrl
     ) {}
 
     @PostMapping
     @Transactional
+    @Operation(summary = "상품 등록")
     public RsData<ProductDto> create(
             @RequestBody @Valid ProductCreateReqBody reqBody
     ) {
@@ -50,6 +53,7 @@ public class ApiV1ProductController {
 
     @GetMapping
     @Transactional(readOnly = true)
+    @Operation(summary = "상품 목록 조회")
     public List<ProductDto> getItems() {
         List<Product> items = productService.findAll();
 
@@ -61,6 +65,7 @@ public class ApiV1ProductController {
 
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
+    @Operation(summary = "상품 상세 조회")
     public ProductDto getItem(@PathVariable long id) {
         Product product = productService.findById(id).get();
 
@@ -68,19 +73,21 @@ public class ApiV1ProductController {
     }
 
     public record ProductModifyReqBody(
-            @NotBlank
-            @Size(min = 2)
+            @NotBlank(message = "상품명을 입력해주세요.")
+            @Size(min = 2, message = "제목은 두 글자 이상 입력해주세요.")
             String name,
-            @Min(2)
+            @Min(value = 2, message = "가격은 2원 이상으로 입력해주세요.")
             int price,
-            @NotBlank
-            @Size(min = 2)
+            @NotBlank(message = "상품설명을 입력해주세요.")
+            @Size(min = 2, message = "상품설명은 두 글자 이상 입력해주세요.")
             String description,
+            @NotBlank(message = "상품 이미지를 업로드하거나 이미지 URL을 입력해주세요.")
             String imageUrl
     ) {}
 
     @PutMapping("/{id}")
     @Transactional
+    @Operation(summary = "상품 수정")
     public RsData<Void> modify(
             @PathVariable long id,
             @RequestBody @Valid ProductModifyReqBody reqBody
@@ -97,6 +104,7 @@ public class ApiV1ProductController {
 
     @DeleteMapping("/{id}")
     @Transactional
+    @Operation(summary = "상품 삭제")
     public RsData<Void> delete(@PathVariable long id) {
         Product product = productService.findById(id).get();
 
