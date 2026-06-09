@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "Team6";
+const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "Team6 | 육성";
 
 const navItems = [
   {

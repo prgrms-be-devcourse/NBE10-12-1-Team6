@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Footer from "../../../component/Footer";
 import StoreBar from "../../../component/StoreBar";
 
-const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "Team6";
+const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "Team6 | 육성";
 
 const navLinkBaseClass =
   "group relative py-2 font-medium transition-colors duration-300 ease-out";
@@ -111,6 +112,7 @@ export default function MainLayout({
       </header>
       {children}
       <StoreBar />
+      <Footer />
     </>
   );
 }

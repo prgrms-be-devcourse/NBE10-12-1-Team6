@@ -140,7 +140,7 @@ export default function PaymentPage() {
 
   return (
     <>
-      <main className="mx-auto max-w-7xl bg-[#faf9f5] px-5 pb-20 pt-28 text-[#1b1c1a] md:px-16">
+      <main className="mx-auto min-w-screen bg-[#faf9f5] px-5 pb-20 pt-28 text-[#1b1c1a] md:px-16">
         <div className="mb-12">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-[#7d562d]">
             Checkout
@@ -184,8 +184,6 @@ export default function PaymentPage() {
         onCancel={() => setPendingDeleteItem(null)}
         onConfirm={handleConfirmRemove}
       />
-
-      <Footer />
     </>
   );
 }

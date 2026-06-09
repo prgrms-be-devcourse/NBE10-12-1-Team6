@@ -139,8 +139,6 @@ export default function PaymentSuccessPage() {
           </div>
         </section>
       </main>
-
-      <Footer />
     </>
   );
 }

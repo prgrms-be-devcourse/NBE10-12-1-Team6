@@ -26,6 +26,7 @@ export default function ProductCatalog({
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [totalItems, setTotalItems] = useState(initialTotalElements);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const isInitialMount = useRef(true);
 
   const productSalesMap = useMemo(
@@ -48,10 +49,13 @@ export default function ProductCatalog({
       }
 
       setIsLoading(true);
+      setErrorMessage("");
       try {
         const data = await getProductsByPaging(query, currentPage - 1, PAGE_SIZE);
         setProducts(data.content);
         setTotalItems(data.totalElements);
+      } catch (error) {
+        setErrorMessage("서버와의 연결이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.");
       } finally {
         setIsLoading(false);
       }
@@ -95,7 +99,7 @@ export default function ProductCatalog({
   return (
     <section className="mx-auto max-w-7xl">
       <div className="mb-8 flex flex-col gap-4 rounded-xl border border-[#d2c3bf]/50 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between md:p-5">
-        <form onSubmit={handleSearch} className="flex flex-1 flex-col gap-3 sm:flex-row">
+        <form onSubmit={handleSearch} className="flex flex-1 gap-3 sm:flex-row flex-nowrap">
           <label className="sr-only" htmlFor="product-search">
             상품 검색
           </label>
@@ -154,6 +158,10 @@ export default function ProductCatalog({
       {isLoading ? (
         <div className="flex min-h-[540px] items-center justify-center rounded-xl border border-[#d2c3bf]/50 bg-[#f4f4f0]">
           <p className="text-[#4f4542]">상품을 불러오는 중입니다...</p>
+        </div>
+      ) : errorMessage ? (
+        <div className="flex min-h-[400px] items-center justify-center rounded-xl border border-[#ba1a1a]/30 bg-[#ffdad6]/20 p-8 text-[#93000a]">
+          <p>{errorMessage}</p>
         </div>
       ) : sortedProducts.length > 0 ? (
         <div className="grid min-h-[400px] grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
