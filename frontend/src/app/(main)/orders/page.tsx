@@ -41,6 +41,7 @@ function getStatusClass(status: string) {
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
   const [emailInput, setEmailInput] = useState("");
   const [searchedEmail, setSearchedEmail] = useState("");
   const [page, setPage] = useState(1);
@@ -50,19 +51,24 @@ export default function OrdersPage() {
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [detailErrorMessage, setDetailErrorMessage] = useState("");
 
-  const loadOrders = useCallback(async (email: string) => {
-    const normalizedEmail = email.trim();
-
-    if (!normalizedEmail) {
+  const loadOrders = useCallback(async (email: string, currentPage: number) => {
+    if (!email) {
       setOrders([]);
-      setSearchedEmail("");
+      setTotalItems(0);
       return;
     }
 
     setIsLoading(true);
-    setSearchedEmail(normalizedEmail);
-    setOrders(await getOrders(normalizedEmail));
-    setIsLoading(false);
+    try {
+      const data = await getOrders(email, currentPage - 1, PAGE_SIZE);
+      setOrders(data.content);
+      setTotalItems(data.totalElements);
+      setSearchedEmail(email);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -71,24 +77,32 @@ export default function OrdersPage() {
       const email = searchParams.get("email") ?? "";
 
       setEmailInput(email);
-      void loadOrders(email);
+      if (email) {
+        setSearchedEmail(email);
+      }
     });
 
     return () => window.cancelAnimationFrame(animationId);
-  }, [loadOrders]);
+  }, []);
 
-  const totalPages = Math.max(1, Math.ceil(orders.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const visibleOrders = orders.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
+  useEffect(() => {
+    if (searchedEmail) {
+      void loadOrders(searchedEmail, page);
+    }
+  }, [searchedEmail, page, loadOrders]);
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setPage(1);
     setSelectedOrder(null);
-    void loadOrders(emailInput);
+    const email = emailInput.trim();
+    if (page === 1) {
+      void loadOrders(email, 1);
+    } else {
+      setPage(1);
+    }
+    setSearchedEmail(email);
   };
 
   const handleOpenOrderDetail = async (order: Order) => {
@@ -172,13 +186,13 @@ export default function OrdersPage() {
               </thead>
               <tbody className="divide-y divide-[#d2c3bf]/20">
                 {isLoading ? (
-                  <tr>
-                    <td colSpan={5} className="px-8 py-12 text-center text-[#4f4542]">
+                  <tr className="min-h-[540px]" >
+                    <td colSpan={5} className="px-8 py-44 text-center text-[#4f4542]">
                       주문 내역을 불러오는 중입니다.
                     </td>
                   </tr>
-                ) : visibleOrders.length > 0 ? (
-                  visibleOrders.map((order) => (
+                ) : orders.length > 0 ? (
+                  orders.map((order) => (
                     <tr
                       key={order.id}
                       onClick={() => void handleOpenOrderDetail(order)}
@@ -232,8 +246,8 @@ export default function OrdersPage() {
           <div className="flex items-center justify-center gap-2 border-t border-[#d2c3bf]/30 bg-[#f4f4f0]/60 px-8 py-4">
             <button
               type="button"
-              onClick={() => setPage((prevPage) => Math.max(1, prevPage - 1))}
-              disabled={currentPage === 1}
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
               className="flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-semibold text-[#4f4542] transition-colors hover:bg-[#e3e2df] disabled:opacity-40"
             >
               이전
@@ -245,7 +259,7 @@ export default function OrdersPage() {
                   type="button"
                   onClick={() => setPage(pageNumber)}
                   className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold transition-colors ${
-                    currentPage === pageNumber
+                    page === pageNumber
                       ? "bg-[#130805] text-white"
                       : "text-[#4f4542] hover:bg-[#e3e2df]"
                   }`}
@@ -256,10 +270,8 @@ export default function OrdersPage() {
             )}
             <button
               type="button"
-              onClick={() =>
-                setPage((prevPage) => Math.min(totalPages, prevPage + 1))
-              }
-              disabled={currentPage === totalPages}
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
+              disabled={page === totalPages}
               className="flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-semibold text-[#4f4542] transition-colors hover:bg-[#e3e2df] disabled:opacity-40"
             >
               다음

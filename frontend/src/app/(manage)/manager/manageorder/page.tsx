@@ -54,6 +54,7 @@ export default function ManageOrderPage() {
   const successTimerId = useRef<number | undefined>(undefined);
   const defaultDateRange = useMemo(() => getDefaultDateRange(), []);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
   const [periodSales, setPeriodSales] = useState(0);
   const [rankedProductSales, setRankedProductSales] = useState<
     RankedProductSale[]
@@ -77,7 +78,7 @@ export default function ManageOrderPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const loadOrders = useCallback(async (start: string, end: string) => {
+  const loadOrders = useCallback(async (start: string, end: string, currentPage: number, currentStatus: string) => {
     if (!start || !end) {
       setErrorMessage("조회 기간을 모두 선택해주세요.");
       return;
@@ -88,9 +89,21 @@ export default function ManageOrderPage() {
     setErrorMessage("");
     const startDateTime = toStartDateTime(start);
     const endDateTime = toEndDateTime(end);
+
+    // 백엔드 OrderStatus enum 값에 맞춰 매핑 (필요 시 수정)
+    const statusParam = currentStatus === "all" 
+      ? ["BEFORE_PROCESSING", "AFTER_PROCESSING"] 
+      : [currentStatus];
+
     const [ordersData, salesAmount, productSalesData, productsData] =
       await Promise.all([
-      getAdminOrders(startDateTime, endDateTime),
+      getAdminOrders(
+        startDateTime, 
+        endDateTime, 
+        currentPage - 1, // 백엔드는 0-indexed page를 기대함
+        PAGE_SIZE, 
+        statusParam
+      ),
       getSalesBetween(startDateTime, endDateTime),
       getProductSalesBetween(startDateTime, endDateTime),
       getProducts(),
@@ -99,7 +112,10 @@ export default function ManageOrderPage() {
       productsData.map((product) => [product.id, product.name]),
     );
 
-    setOrders(ordersData);
+    // Page 객체 구조에서 데이터와 전체 개수 추출
+    setOrders(ordersData.content);
+    setTotalItems(ordersData.totalElements);
+
     setPeriodSales(salesAmount);
     setRankedProductSales(
       productSalesData.slice(0, 3).map((productSale) => ({
@@ -121,32 +137,19 @@ export default function ManageOrderPage() {
   }, []);
 
   useEffect(() => {
-    const animationId = window.requestAnimationFrame(() => {
-      void loadOrders(defaultDateRange.startDate, defaultDateRange.endDate);
-    });
+    void loadOrders(startDate, endDate, page, statusFilter);
+  }, [page, statusFilter, loadOrders]);
 
-    return () => window.cancelAnimationFrame(animationId);
-  }, [defaultDateRange.endDate, defaultDateRange.startDate, loadOrders]);
-
-  const filteredOrders = useMemo(() => {
-    if (statusFilter === "all") {
-      return orders;
-    }
-
-    return orders.filter((order) => order.status === statusFilter);
-  }, [orders, statusFilter]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const visibleOrders = filteredOrders.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const visibleOrders = orders;
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setPage(1);
-    void loadOrders(startDate, endDate);
+    if (page === 1) {
+      void loadOrders(startDate, endDate, 1, statusFilter);
+    } else {
+      setPage(1); // page가 변경되면서 useEffect가 loadOrders를 트리거함
+    }
   };
 
   const handleRequestDelete = (order: Order) => {
@@ -397,10 +400,10 @@ export default function ManageOrderPage() {
               </thead>
               <tbody className="divide-y divide-[#d2c3bf]/20">
                 {isLoading ? (
-                  <tr>
+                  <tr className="min-h-[540px]" >
                     <td
                       colSpan={7}
-                      className="px-6 py-12 text-center text-[#4f4542]"
+                      className="px-6 py-44 text-center text-[#4f4542]"
                     >
                       주문 내역을 불러오는 중입니다.
                     </td>
@@ -485,9 +488,9 @@ export default function ManageOrderPage() {
           </div>
 
           <ManagerPagination
-            currentPage={currentPage}
+            currentPage={page}
             pageSize={PAGE_SIZE}
-            totalItems={filteredOrders.length}
+            totalItems={totalItems}
             totalPages={totalPages}
             onPageChange={setPage}
           />

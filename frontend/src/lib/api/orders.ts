@@ -23,52 +23,45 @@ export async function createOrder(order: CreateOrderRequest): Promise<Order> {
   return unwrapRsData<Order>(await response.json());
 }
 
-export async function getOrders(email: string): Promise<Order[]> {
-  const normalizedEmail = email.trim();
+export async function getOrders(
+  email: string,
+  page: number,
+  size: number,
+): Promise<{ content: Order[]; totalElements: number }> {
+  const query = new URLSearchParams({
+    email,
+    page: page.toString(),
+    size: size.toString(),
+  });
 
-  if (!normalizedEmail) {
-    return [];
-  }
-
-  try {
-    const params = new URLSearchParams({
-      email: normalizedEmail,
-    });
-    const response = await fetch(`${API_BASE_URL}/api/v1/orders?${params}`, {
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      return [];
-    }
-
-    const orders = unwrapRsData<Order[]>(await response.json());
-    return Array.isArray(orders) ? orders : [];
-  } catch {
-    return [];
-  }
+  const response = await fetch(`${API_BASE_URL}/api/v1/orders/page?${query.toString()}`);
+  if (!response.ok) throw new Error("주문 내역 조회에 실패했습니다.");
+  const rs = await response.json();
+  return rs.data;
 }
 
-export async function getAdminOrders(start: string, end: string): Promise<Order[]> {
-  try {
-    const params = new URLSearchParams({
-      start,
-      end,
-    });
-    const response = await fetch(`${API_BASE_URL}/api/v1/orders/admin?${params}`, {
-      cache: "no-store",
-    });
 
-    if (!response.ok) {
-      return [];
-    }
+export async function getAdminOrders(
+  start: string,
+  end: string,
+  page: number,
+  size: number,
+  status: string[],
+): Promise<{ content: Order[]; totalElements: number }> {
+  const query = new URLSearchParams({
+    start,
+    end,
+    page: page.toString(),
+    size: size.toString(),
+  });
+  status.forEach((s) => query.append("status", s));
 
-    const orders = unwrapRsData<Order[]>(await response.json());
-    return Array.isArray(orders) ? orders : [];
-  } catch {
-    return [];
-  }
+  const response = await fetch(`${API_BASE_URL}/api/v1/orders/admin/page?${query.toString()}`);
+  if (!response.ok) throw new Error("주문 내역 조회에 실패했습니다.");
+  const rs = await response.json();
+  return rs.data;
 }
+
 
 export async function getSalesBetween(start: string, end: string): Promise<number> {
   try {

@@ -1,10 +1,13 @@
-export { API_BASE_URL } from "@/lib/api/client";
+import { API_BASE_URL } from "@/lib/api/client";
+import type { Order } from "@/types/order";
+
+export { API_BASE_URL };
 export {
   createOrder,
   deleteOrder,
-  getAdminOrders,
   getOrderItems,
   getOrders,
+  getAdminOrders,
   getProductSalesBetween,
   getSalesBetween,
   updateOrderStatus,

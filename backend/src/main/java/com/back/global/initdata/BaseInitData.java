@@ -73,5 +73,17 @@ public class BaseInitData {
                 "대구광역시 수성구", "노변로 55", "42268",
                 Map.of(p2.getId(), 3,
                         p3.getId(), 2));
+
+        for (int i = 3; i < 30; i++) {
+            createOrder(i, p1.getId());
+        }
+
+    }
+
+    private void createOrder(int idx, Long id) {
+        orderService.createOrder("basd@test.com",
+                "경기도 남양주시", "경춘로 %d".formatted(idx), "12100",
+                Map.of(id, 3));
+
     }
 }

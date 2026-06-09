@@ -64,9 +64,11 @@ public class OrderService {
         return orderRepository.findByCreateDateBetween(getStartOfDate(start), getEndOfDate(end));
     }
 
-    public Page<Order> getOrderBetweenDayWithPaging(LocalDateTime start, LocalDateTime end, int page, int size) {
+    public Page<Order> getOrderBetweenDayWithPaging(
+            LocalDateTime start, LocalDateTime end, List<OrderStatus> status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return orderRepository.findByCreateDateBetween(getStartOfDate(start), getEndOfDate(end), pageable);
+        return orderRepository.findByCreateDateBetweenAndStatusIn(
+                getStartOfDate(start), getEndOfDate(end), status, pageable);
     }
 
     public List<Order> getOrdersByEmail(String email) {
