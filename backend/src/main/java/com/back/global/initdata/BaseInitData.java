@@ -65,25 +65,31 @@ public class BaseInitData {
         Product p29 = productService.create("윈터 스파이스 블렌드", 22800, "다크초콜릿과 따뜻한 향신료 뉘앙스가 겨울의 묵직한 분위기를 전합니다.", "https://lh3.googleusercontent.com/aida-public/AB6AXuCdhrmUBUsvDSYaHRrvuLsjw6iR4ex9AXkyZATZJyEWksXOLX0YAbfId8W60JIokglmebcyYIPG9kvYlD6UUFIgmsUSismH_s3PwjxhGReY1HFM4WjuKm3GG_ky5upLA3bx97rckSEphn49kLVl2hj15EKXtoLbWEO8WFGCRYUmM3Rl8J3zlPRIFPdDrMKnTOQDoH2-RYqEqSKugyTrq9iNjKKPVKmuDPDPU-7RzPV0orWicGS6_yDNsUXqPNbRsqk09lB9BYKKf3o");
         Product p30 = productService.create("Team6 로스터스 초이스", 26000, "시즌별 가장 좋은 생두를 선별해 로스터의 추천 프로파일로 완성한 한정 원두입니다.", "https://lh3.googleusercontent.com/aida-public/AB6AXuBLUIQCHdNMDK5DuFCtkU8NcHt-_XflT29T8kLZAceDcKUFBW7FBpPwBJOCfQwfpKi8HlqnoHgzQL3PRfVyYr1P_ql7EfJzGlQc5L-KhohIOhhJEiSPIrakrLZd7kjWECSzeSrJsM3KRJukT98TSToAY1pcZsH5tGxo2gAYypYw_idg-20kjO6zAf9qWeRRhuKxJwK3rBRKRvvpMAXJG0UMOTBeBoMX5avm-6dJdg3BF0Gfp_OfCPBVklk-bI1VYH2hcF2gEwaBIi8");
 
-        Order order1 = orderService.createOrder("base@test.com",
-                "경기도 남양주시", "경춘로 789", "12100",
-                Map.of(p1.getId(), 3));
+        if (orderService.count() > 0) return;
 
-        Order order2 = orderService.createOrder("base@test.com",
-                "대구광역시 수성구", "노변로 55", "42268",
-                Map.of(p2.getId(), 3,
-                        p3.getId(), 2));
-
-        for (int i = 3; i < 30; i++) {
-            createOrder(i, p1.getId());
-        }
-
-    }
-
-    private void createOrder(int idx, Long id) {
-        orderService.createOrder("basd@test.com",
-                "경기도 남양주시", "경춘로 %d".formatted(idx), "12100",
-                Map.of(id, 3));
+        // base@test.com 주문
+        orderService.createOrder("base@test.com", "경기도 남양주시", "경춘로 789", "12100", Map.of(p1.getId(), 3));
+        orderService.createOrder("base@test.com", "대구광역시 수성구", "노변로 55", "42268", Map.of(p2.getId(), 3, p3.getId(), 2));
+        orderService.createOrder("base@test.com", "경기도 남양주시", "경춘로 1", "12100", Map.of(p1.getId(), 5, p4.getId(), 2));
+        orderService.createOrder("base@test.com", "경기도 남양주시", "경춘로 2", "12100", Map.of(p2.getId(), 4, p5.getId(), 1));
+        orderService.createOrder("base@test.com", "경기도 남양주시", "경춘로 3", "12100", Map.of(p3.getId(), 3, p6.getId(), 2));
+        orderService.createOrder("base@test.com", "경기도 남양주시", "경춘로 4", "12100", Map.of(p1.getId(), 4, p7.getId(), 1));
+        orderService.createOrder("base@test.com", "경기도 남양주시", "경춘로 5", "12100", Map.of(p2.getId(), 4, p8.getId(), 1));
+        // user1@test.com 주문
+        orderService.createOrder("user1@test.com", "서울시 강남구", "테헤란로 1", "06123", Map.of(p1.getId(), 6, p4.getId(), 3));
+        orderService.createOrder("user1@test.com", "서울시 강남구", "테헤란로 2", "06123", Map.of(p2.getId(), 5, p5.getId(), 2));
+        orderService.createOrder("user1@test.com", "서울시 강남구", "테헤란로 3", "06123", Map.of(p3.getId(), 5, p6.getId(), 1));
+        orderService.createOrder("user1@test.com", "서울시 강남구", "테헤란로 4", "06123", Map.of(p1.getId(), 6, p7.getId(), 2));
+        orderService.createOrder("user1@test.com", "서울시 강남구", "테헤란로 5", "06123", Map.of(p2.getId(), 5, p8.getId(), 1));
+        orderService.createOrder("user1@test.com", "서울시 강남구", "테헤란로 6", "06123", Map.of(p3.getId(), 5, p9.getId(), 1));
+        orderService.createOrder("user1@test.com", "서울시 강남구", "테헤란로 7", "06123", Map.of(p4.getId(), 3, p10.getId(), 1));
+        // user2@test.com 주문
+        orderService.createOrder("user2@test.com", "부산시 해운대구", "해운대해변로 1", "48094", Map.of(p1.getId(), 6, p5.getId(), 5));
+        orderService.createOrder("user2@test.com", "부산시 해운대구", "해운대해변로 2", "48094", Map.of(p2.getId(), 4, p6.getId(), 3));
+        orderService.createOrder("user2@test.com", "부산시 해운대구", "해운대해변로 3", "48094", Map.of(p3.getId(), 5, p7.getId(), 2));
+        orderService.createOrder("user2@test.com", "부산시 해운대구", "해운대해변로 4", "48094", Map.of(p4.getId(), 2, p8.getId(), 2));
+        orderService.createOrder("user2@test.com", "부산시 해운대구", "해운대해변로 5", "48094", Map.of(p9.getId(), 2, p10.getId(), 1));
+        orderService.createOrder("user2@test.com", "부산시 해운대구", "해운대해변로 6", "48094", Map.of(p11.getId(), 1));
 
     }
 }
