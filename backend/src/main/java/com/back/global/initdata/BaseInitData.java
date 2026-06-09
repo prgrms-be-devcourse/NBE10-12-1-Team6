@@ -27,11 +27,17 @@ public class BaseInitData {
     ApplicationRunner baseInitDataApplicationRunner() {
         return args -> {
             self.work1();
+            self.work2();
         };
+    }
+    @Transactional
+    public void work1() {
+        orderService.processOrder();
+
     }
 
     @Transactional
-    public void work1() {
+    public void work2() {
         if (productService.count() > 0) return;
 
         Product p1 = productService.create("에티오피아 예가체프 G1", 24000, "화사한 꽃향기와 세련된 산미가 은은하게 이어지는 싱글 오리진 원두입니다.", "https://lh3.googleusercontent.com/aida-public/AB6AXuAEWNLNnJ5Hy4LuRWWEqlrhMvJA48j4oJLXGaH_6ZuQnEVVDmnnbompokn57fOVJftMjW36qHVilFm5Pr7rHNf-M8iADz6crCZ0-1LKoMF9SLw7UMLp3aLAYriCanuH7pWAciz6oh270z5Tn9_8SrRnNRARPWYRINV2shFyM3b4KGJ033UyV5gCH25Mn0UoyhIv4I3YKZY8--Zd7gYBMRsSaepELLyMLyzflZisg_zyJw8ksypY1l8EA-QA9-sWXRfMTX-7l2GwfYk");

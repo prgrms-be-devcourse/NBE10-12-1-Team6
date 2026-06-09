@@ -52,10 +52,6 @@ public class OrderService {
         return LocalDateTime.of(date.plusDays(1), endTime);
     }
 
-    private boolean checkIsNotValidEmail(String email) {
-        return !email.matches("^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+.[a-zA-Z0-9.]+$");
-    }
-
     public List<Order> getOrdersByDay(LocalDateTime day) {
         return getOrderBetweenDay(day, day);
     }
@@ -72,38 +68,12 @@ public class OrderService {
     }
 
     public List<Order> getOrdersByEmail(String email) {
-        if (checkIsNotValidEmail(email)) {
-            throw new EmailNotValidException();
-        }
         return orderRepository.findByEmail(email);
     }
 
     public Page<Order> getOrdersByEmailWithPaging(String email, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return orderRepository.findByEmail(email, pageable);
-    }
-
-    public Order addOrder(String email, String address1, String address2, String zipCode, List<OrderItem> orderItem) {
-
-        LocalDateTime now = LocalDateTime.now();
-
-        if (checkIsNotValidEmail(email)) {
-            throw new EmailNotValidException();
-        }
-
-        Optional<Order> order = orderRepository
-                .findByCreateDateBetweenAndEmailAndAddress1AndAddress2AndZipCode(
-                        getStartOfDate(now), getEndOfDate(now), email, address1, address2, zipCode);
-
-        Order o = order.orElseGet(() ->
-                orderRepository.save(new Order(
-                        email, zipCode, address1, address2)));
-
-        for (var oi : orderItem) {
-            o.addOrderItem(oi);
-        }
-
-        return o;
     }
 
     public Order createOrder(
@@ -113,6 +83,17 @@ public class OrderService {
             String zipCode,
             Map<Long, Integer> productQuantities
     ) {
+
+        LocalDateTime now = LocalDateTime.now();
+
+        Optional<Order> order = orderRepository
+                .findByCreateDateBetweenAndEmailAndAddress1AndAddress2AndZipCode(
+                        getStartOfDate(now), getEndOfDate(now), email, address1, address2, zipCode);
+
+        Order o = order.orElseGet(() ->
+                orderRepository.save(new Order(
+                        email, zipCode, address1, address2)));
+
         List<OrderItem> orderItems = new ArrayList<>();
 
         for (var entry : productQuantities.entrySet()) {
@@ -131,8 +112,9 @@ public class OrderService {
 
             orderItems.add(orderItem);
         }
+        o.addOrderItems(orderItems);
 
-        return addOrder(email, address1, address2, zipCode, orderItems);
+        return o;
     }
 
     // 특정 주문 단건 조회
@@ -155,7 +137,8 @@ public class OrderService {
 
     public void processOrder() {
 
-        List<Order> orders = getOrdersByDay(LocalDateTime.of(LocalDate.now(), LocalTime.MIN));
+        List<Order> orders = orderRepository.findByCreateDateBeforeAndStatus(
+                getEndOfDate(LocalDateTime.of(LocalDate.now(), LocalTime.MIN)), OrderStatus.BEFORE_PROCESSING);
 
         for (var order : orders) {
             order.changeStatus(OrderStatus.AFTER_PROCESSING);
