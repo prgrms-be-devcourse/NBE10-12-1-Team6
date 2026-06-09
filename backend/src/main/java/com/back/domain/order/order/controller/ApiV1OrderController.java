@@ -108,14 +108,12 @@ public class ApiV1OrderController {
     @GetMapping("/page")
     @Operation(summary = "이메일 기준 주문 조회")
     @Transactional(readOnly = true)
-    public RsData<List<OrderDto>> getOrdersByEmail(
+    public RsData<Page<OrderDto>> getOrdersByEmail(
             @RequestParam String email,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Page<Order> orders = orderService.getOrdersByEmailWithPaging(email, page, size);
-        List<OrderDto> orderDtos = orders.stream()
-                .map(OrderDto::new)
-                .toList();
+        Page<OrderDto> orderDtos = orders.map(OrderDto::new);
 
         return new RsData<>(
                 "200-2",
@@ -148,15 +146,16 @@ public class ApiV1OrderController {
     @GetMapping("/admin/page")
     @Operation(summary = "기간별 주문 전체 조회 (관리자)")
     @Transactional(readOnly = true)
-    public RsData<List<OrderDto>> getOrdersBetween(
+    public RsData<Page<OrderDto>> getOrdersBetween(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "[\"처리전\", \"처리후\"]") List<OrderStatus> status
     ) {
-        Page<Order> orders = orderService.getOrderBetweenDayWithPaging(start, end, page, size);
+        Page<Order> orders = orderService.getOrderBetweenDayWithPaging(start, end, status, page, size);
 
-        List<OrderDto> orderDtos = orders.stream().map(OrderDto::new).toList();
+        Page<OrderDto> orderDtos = orders.map(OrderDto::new);
 
         return new RsData<>(
                 "200-3",
