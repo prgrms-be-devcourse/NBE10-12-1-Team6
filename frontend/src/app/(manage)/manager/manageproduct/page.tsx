@@ -88,10 +88,13 @@ export default function ManageProductPage() {
 
   const loadProducts = useCallback(async (currentPage: number) => {
     setIsLoading(true);
+    setErrorMessage("");
     try {
       const data = await getProductsByPaging("", currentPage - 1, PAGE_SIZE);
       setProducts(data.content);
       setTotalItems(data.totalElements);
+    } catch (error) {
+      setErrorMessage("서버 연결에 실패하여 상품 목록을 불러올 수 없습니다.");
     } finally {
       setIsLoading(false);
     }

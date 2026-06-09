@@ -1,6 +1,5 @@
-import Footer from "../../../../component/Footer";
 import ProductCatalog from "../../../../component/ProductCatalog";
-import { getProductSalesBetween, getProductsByPaging } from "../../api";
+import { getProductSalesBetween, getProductsByPaging, type Product } from "../../api";
 import {
   getDefaultDateRange,
   toEndDateTime,
@@ -12,11 +11,26 @@ const PAGE_SIZE = 8;
 
 export default async function ProductsPage() {
   const defaultDateRange = getDefaultDateRange();
-  const productsData = await getProductsByPaging("", 0, PAGE_SIZE);
-  const productSales = await getProductSalesBetween(
-      toStartDateTime(defaultDateRange.startDate),
-      toEndDateTime(defaultDateRange.endDate),
-  );
+
+  let productsData: { content: Product[]; totalElements: number } = {
+    content: [],
+    totalElements: 0,
+  };
+  let productSales: any[] = [];
+
+  try {
+    const [pData, salesData] = await Promise.all([
+      getProductsByPaging("", 0, PAGE_SIZE),
+      getProductSalesBetween(
+        toStartDateTime(defaultDateRange.startDate),
+        toEndDateTime(defaultDateRange.endDate),
+      ),
+    ]);
+    productsData = pData;
+    productSales = salesData;
+  } catch (error) {
+    console.error("Initial data fetch failed in ProductsPage:", error);
+  }
 
   return (
     <>
@@ -41,8 +55,6 @@ export default async function ProductsPage() {
           initialProductSales={productSales}
         />
       </main>
-
-      <Footer />
     </>
   );
 }

@@ -42,8 +42,14 @@ function RecommendedProductCard({ product }: { product: Product }) {
 }
 
 export default async function Home() {
-  const productsData = await getProductsByPaging("", 0, 12);
-  const products = getRandomProducts(productsData.content);
+  let products: Product[] = [];
+  try {
+    const productsData = await getProductsByPaging("", 0, 12);
+    products = getRandomProducts(productsData.content);
+  } catch (error) {
+    console.error("Failed to fetch products for Home page:", error);
+  }
+
   const [featured, ...secondaryProducts] = products;
   const shouldUseBalancedGrid = products.length <= 2;
 
@@ -160,7 +166,6 @@ export default async function Home() {
         </section>
       </main>
 
-      <Footer />
     </>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import Footer from "../../../../component/Footer";
 import OrderDetailPanel from "../../../../component/OrderDetailPanel";
 import { formatDate, formatPrice } from "@/lib/format";
 import { getOrderItems, getOrders, type Order, type OrderItem } from "../../api";
@@ -288,7 +287,6 @@ export default function OrdersPage() {
         onClose={() => setSelectedOrder(null)}
       />
 
-      <Footer />
     </>
   );
 }
