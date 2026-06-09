@@ -1,26 +1,32 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-import type { Product, ProductSale } from "@/app/api";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getProductsByPaging, type Product, type ProductSale } from "@/app/api";
 import ProductCard from "./ProductCard";
 
 const PAGE_SIZE = 8;
 
 type ProductCatalogProps = {
-  products: Product[];
+  initialProducts: Product[];
+  initialTotalElements: number;
   initialProductSales: ProductSale[];
 };
 
 type SortMode = "latest" | "popular";
 
 export default function ProductCatalog({
-  products,
+  initialProducts,
+  initialTotalElements,
   initialProductSales,
 }: ProductCatalogProps) {
   const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("latest");
   const [page, setPage] = useState(1);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [totalItems, setTotalItems] = useState(initialTotalElements);
+  const [isLoading, setIsLoading] = useState(false);
+  const isInitialMount = useRef(true);
 
   const productSalesMap = useMemo(
     () =>
@@ -33,54 +39,50 @@ export default function ProductCatalog({
     [initialProductSales],
   );
 
-  const sortedProducts = useMemo(() => {
-    if (sortMode === "latest") {
-      return [...products].sort((a, b) => b.id - a.id);
-    }
-
-    return [...products].sort((a, b) => {
-      const aSale = productSalesMap.get(a.id);
-      const bSale = productSalesMap.get(b.id);
-
-      if (aSale && bSale) {
-        return aSale.rank - bSale.rank;
+  const loadProducts = useCallback(
+    async (query: string, currentPage: number) => {
+      // 초기 렌더링(SSR) 시 이미 데이터가 있으므로 첫 번째 fetch는 스킵합니다.
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        if (query === "" && currentPage === 1) return;
       }
 
-      if (aSale) {
-        return -1;
+      setIsLoading(true);
+      try {
+        const data = await getProductsByPaging(query, currentPage - 1, PAGE_SIZE);
+        setProducts(data.content);
+        setTotalItems(data.totalElements);
+      } finally {
+        setIsLoading(false);
       }
-
-      if (bSale) {
-        return 1;
-      }
-
-      return a.id - b.id;
-    });
-  }, [productSalesMap, products, sortMode]);
-
-  const filteredProducts = useMemo(() => {
-    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-
-    if (!normalizedSearchTerm) {
-      return sortedProducts;
-    }
-
-    return sortedProducts.filter((product) => {
-      const searchableText = `${product.name} ${product.description}`.toLowerCase();
-      return searchableText.includes(normalizedSearchTerm);
-    });
-  }, [searchTerm, sortedProducts]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const visibleProducts = filteredProducts.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
+    },
+    [], // 의존성 배열에서 products를 제거하여 무한 루프 및 깜빡임 방지
   );
+
+  useEffect(() => {
+    void loadProducts(searchTerm, page);
+  }, [searchTerm, page, loadProducts]);
+
+  // 현재 페이지의 상품을 선택된 정렬 기준에 따라 정렬
+  const sortedProducts = useMemo(() => {
+    const list = [...products];
+    if (sortMode === "latest") {
+      // ID 내림차순 (최신순)
+      return list.sort((a, b) => b.id - a.id);
+    }
+    // 인기순 (판매량 랭크 기준, 랭크가 없으면 뒤로 보냄)
+    return list.sort((a, b) => {
+      const aRank = productSalesMap.get(a.id)?.rank ?? 999;
+      const bRank = productSalesMap.get(b.id)?.rank ?? 999;
+      return aRank - bRank;
+    });
+  }, [products, sortMode, productSalesMap]);
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSearchTerm(searchInput);
+    setSearchTerm(searchInput.trim());
     setPage(1);
   };
 
@@ -122,7 +124,7 @@ export default function ProductCatalog({
           </div>
         </form>
         <p className="text-sm font-medium text-[#4f4542]">
-          총 {filteredProducts.length}개 상품
+          총 {totalItems}개 상품
         </p>
       </div>
 
@@ -145,13 +147,17 @@ export default function ProductCatalog({
           </button>
         ))}
         <span className="text-sm font-medium text-[#817471]">
-          인기순은 최근 한 달 판매량 기준입니다.
+          인기순 정렬은 현재 페이지 내에서 적용됩니다.
         </span>
       </div>
 
-      {visibleProducts.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {visibleProducts.map((product) => {
+      {isLoading ? (
+        <div className="flex min-h-[540px] items-center justify-center rounded-xl border border-[#d2c3bf]/50 bg-[#f4f4f0]">
+          <p className="text-[#4f4542]">상품을 불러오는 중입니다...</p>
+        </div>
+      ) : sortedProducts.length > 0 ? (
+        <div className="grid min-h-[400px] grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {sortedProducts.map((product) => {
             const salesRank = productSalesMap.get(product.id)?.rank;
 
             return (
@@ -179,7 +185,7 @@ export default function ProductCatalog({
         <button
           type="button"
           onClick={() => setPage((prevPage) => Math.max(1, prevPage - 1))}
-          disabled={currentPage === 1}
+          disabled={page === 1}
           className="flex h-10 min-w-10 items-center justify-center rounded-lg border border-[#d2c3bf] px-3 text-sm font-semibold text-[#4f4542] transition-colors hover:border-[#7d562d] hover:text-[#130805] disabled:cursor-not-allowed disabled:opacity-40"
         >
           이전
@@ -191,7 +197,7 @@ export default function ProductCatalog({
               type="button"
               onClick={() => setPage(pageNumber)}
               className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-semibold transition-colors ${
-                currentPage === pageNumber
+                page === pageNumber
                   ? "bg-[#130805] text-white"
                   : "border border-[#d2c3bf] text-[#4f4542] hover:border-[#7d562d] hover:text-[#130805]"
               }`}
@@ -203,7 +209,7 @@ export default function ProductCatalog({
         <button
           type="button"
           onClick={() => setPage((prevPage) => Math.min(totalPages, prevPage + 1))}
-          disabled={currentPage === totalPages}
+          disabled={page === totalPages}
           className="flex h-10 min-w-10 items-center justify-center rounded-lg border border-[#d2c3bf] px-3 text-sm font-semibold text-[#4f4542] transition-colors hover:border-[#7d562d] hover:text-[#130805] disabled:cursor-not-allowed disabled:opacity-40"
         >
           다음

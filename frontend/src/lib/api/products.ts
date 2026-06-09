@@ -1,6 +1,26 @@
 import { API_BASE_URL, unwrapRsData } from "@/lib/api/client";
 import type { Product, ProductRequest } from "@/types/product";
 
+export async function getProductsByPaging(
+  searchTerm: string = "",
+  page: number = 0,
+  size: number = 10,
+): Promise<{ content: Product[]; totalElements: number }> {
+  const query = new URLSearchParams({
+    searchTerm,
+    page: page.toString(),
+    size: size.toString(),
+  });
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/products/page?${query.toString()}`);
+
+  if (!response.ok) {
+    throw new Error("상품 목록 조회에 실패했습니다.");
+  }
+
+  return unwrapRsData(await response.json());
+}
+
 export async function getProducts(): Promise<Product[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/products`, {

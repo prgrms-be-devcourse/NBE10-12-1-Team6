@@ -1,6 +1,6 @@
 import Footer from "../../../../component/Footer";
 import ProductCatalog from "../../../../component/ProductCatalog";
-import { getProductSalesBetween, getProducts } from "../../api";
+import { getProductSalesBetween, getProductsByPaging } from "../../api";
 import {
   getDefaultDateRange,
   toEndDateTime,
@@ -8,10 +8,11 @@ import {
 } from "@/lib/dateRange";
 
 export const dynamic = "force-dynamic";
+const PAGE_SIZE = 8;
 
 export default async function ProductsPage() {
   const defaultDateRange = getDefaultDateRange();
-  const products = await getProducts();
+  const productsData = await getProductsByPaging("", 0, PAGE_SIZE);
   const productSales = await getProductSalesBetween(
       toStartDateTime(defaultDateRange.startDate),
       toEndDateTime(defaultDateRange.endDate),
@@ -35,7 +36,8 @@ export default async function ProductsPage() {
         </header>
 
         <ProductCatalog
-          products={products}
+          initialProducts={productsData.content}
+          initialTotalElements={productsData.totalElements}
           initialProductSales={productSales}
         />
       </main>

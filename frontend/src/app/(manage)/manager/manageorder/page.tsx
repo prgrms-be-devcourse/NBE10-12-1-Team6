@@ -400,9 +400,10 @@ export default function ManageOrderPage() {
               </thead>
               <tbody className="divide-y divide-[#d2c3bf]/20">
                 {isLoading ? (
-                  <tr className="min-h-[540px]" >
+                  <tr>
                     <td
                       colSpan={7}
+                      rowSpan={5}
                       className="px-6 py-44 text-center text-[#4f4542]"
                     >
                       주문 내역을 불러오는 중입니다.
