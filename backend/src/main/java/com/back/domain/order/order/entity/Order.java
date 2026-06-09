@@ -5,7 +5,6 @@ import com.back.global.jpa.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,8 +74,6 @@ public class Order extends BaseEntity {
                         }
                 );
 
-        // 상품이 추가/합산될 때마다 주문 총 금액 업데이트
-        calculateTotalPrice();
     }
 
     // 총 주문 금액을 계산하는 내부 메서드
@@ -84,5 +81,13 @@ public class Order extends BaseEntity {
         this.price = this.orderItems.stream()
                 .mapToInt(item -> item.getProductPrice() * item.getQuantity())
                 .sum();
+    }
+
+    public void addOrderItems(List<OrderItem> orderItems) {
+        for (var entry : orderItems) {
+            addOrderItem(entry);
+        }
+        // 상품이 추가/합산될 때마다 주문 총 금액 업데이트
+        calculateTotalPrice();
     }
 }

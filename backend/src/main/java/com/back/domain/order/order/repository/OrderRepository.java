@@ -31,6 +31,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Page<Order> findByEmail(String email, Pageable pageable);
 
+    List<Order> findByCreateDateBeforeAndStatus(LocalDateTime date, OrderStatus status);
+
     // ref: https://medium.com/@odysseymoon/spring-data-jpa에서-groupby-처리하기-82cddc6e5d4a
     @Query(value=
             """
