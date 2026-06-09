@@ -8,14 +8,13 @@ import {
   FormEvent,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
 import {
   createProduct,
   deleteProduct,
-  getProducts,
+  getProductsByPaging,
   updateProduct,
   type Product,
 } from "@/app/api";
@@ -70,6 +69,7 @@ function validateForm(form: ProductForm) {
 export default function ManageProductPage() {
   const successTimerId = useRef<number | undefined>(undefined);
   const [products, setProducts] = useState<Product[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
   const [form, setForm] = useState(emptyForm);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,18 +83,18 @@ export default function ManageProductPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
-  const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const visibleProducts = useMemo(
-    () =>
-      products.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
-    [currentPage, products],
-  );
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const visibleProducts = products;
 
-  const loadProducts = useCallback(async () => {
+  const loadProducts = useCallback(async (currentPage: number) => {
     setIsLoading(true);
-    setProducts(await getProducts());
-    setIsLoading(false);
+    try {
+      const data = await getProductsByPaging("", currentPage - 1, PAGE_SIZE);
+      setProducts(data.content);
+      setTotalItems(data.totalElements);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -106,12 +106,8 @@ export default function ManageProductPage() {
   }, []);
 
   useEffect(() => {
-    const animationId = window.requestAnimationFrame(() => {
-      void loadProducts();
-    });
-
-    return () => window.cancelAnimationFrame(animationId);
-  }, [loadProducts]);
+    void loadProducts(page);
+  }, [page, loadProducts]);
 
   const handleChange =
     (field: keyof ProductForm) =>
@@ -200,14 +196,14 @@ export default function ManageProductPage() {
 
       if (editingProduct) {
         await updateProduct(editingProduct.id, productPayload);
-        await loadProducts();
+        await loadProducts(page);
 
         setMessage("상품이 수정되었습니다.");
         setEditingProduct(null);
       } else {
         await createProduct(productPayload);
-        await loadProducts();
         setPage(1);
+        await loadProducts(1);
         setMessage("상품이 등록되었습니다.");
       }
 
@@ -270,9 +266,7 @@ export default function ManageProductPage() {
     try {
       await deleteProduct(pendingDeleteProduct.id);
 
-      setProducts((prevProducts) =>
-        prevProducts.filter((product) => product.id !== pendingDeleteProduct.id),
-      );
+      await loadProducts(page);
       setDeleteSuccessMessage(`${pendingDeleteProduct.name} 상품이 삭제되었습니다.`);
       setPendingDeleteProduct(null);
 
@@ -457,7 +451,7 @@ export default function ManageProductPage() {
               <div>
                 <p className="text-sm text-[#dac1bb]">현재 운영 상품</p>
                 <p className="mt-1 text-3xl font-bold">
-                  {products.length} Items
+                  {totalItems} Items
                 </p>
               </div>
             </div>
@@ -476,7 +470,7 @@ export default function ManageProductPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={loadProducts}
+                  onClick={() => void loadProducts(page)}
                   className="rounded-lg border border-[#d2c3bf] px-4 py-2 text-sm font-semibold text-[#4f4542] transition-colors hover:border-[#7d562d] hover:text-[#130805]"
                 >
                   새로고침
@@ -500,7 +494,8 @@ export default function ManageProductPage() {
                       <tr>
                         <td
                           colSpan={4}
-                          className="px-6 py-12 text-center text-[#4f4542]"
+                          rowSpan={5}
+                          className="px-6 py-44 text-center text-[#4f4542]"
                         >
                           상품 목록을 불러오는 중입니다.
                         </td>
@@ -569,9 +564,9 @@ export default function ManageProductPage() {
               </div>
 
               <ManagerPagination
-                currentPage={currentPage}
+                currentPage={page}
                 pageSize={PAGE_SIZE}
-                totalItems={products.length}
+                totalItems={totalItems}
                 totalPages={totalPages}
                 onPageChange={setPage}
               />

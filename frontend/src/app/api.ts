@@ -17,6 +17,7 @@ export {
   deleteProduct,
   getProduct,
   getProducts,
+  getProductsByPaging,
   updateProduct,
 } from "@/lib/api/products";
 export type {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Footer from "../../../component/Footer";
 import { formatPrice } from "@/lib/format";
-import { getProducts, type Product } from "../api";
+import { getProductsByPaging, type Product } from "../api";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +42,8 @@ function RecommendedProductCard({ product }: { product: Product }) {
 }
 
 export default async function Home() {
-  const products = getRandomProducts(await getProducts());
+  const productsData = await getProductsByPaging("", 0, 12);
+  const products = getRandomProducts(productsData.content);
   const [featured, ...secondaryProducts] = products;
   const shouldUseBalancedGrid = products.length <= 2;
 
