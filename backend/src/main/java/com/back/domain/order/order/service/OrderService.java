@@ -97,12 +97,12 @@ public class OrderService {
             Product product = productService.findById(productId.intValue())
                     .orElseThrow(() -> new NoSuchElementException("존재하지 않는 상품 번호입니다: " + productId));
 
-            OrderItem orderItem = OrderItem.builder()
-                    .productId(product.getId())
-                    .productName(product.getName())
-                    .productPrice(product.getPrice())
-                    .quantity(quantity)
-                    .build();
+            OrderItem orderItem = new OrderItem(
+                    product.getId(),
+                    product.getName(),
+                    product.getPrice(),
+                    quantity
+            );
 
             orderItems.add(orderItem);
         }

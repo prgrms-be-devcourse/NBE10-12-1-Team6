@@ -12,8 +12,6 @@ import java.util.List;
 @Table(name = "orders")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 public class Order extends BaseEntity {
 
     @Column(nullable = false)
@@ -36,7 +34,6 @@ public class Order extends BaseEntity {
     private int price; // 주문 총 금액
 
     // 다른 패키지의 OrderItem과 일대다 매핑
-    @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
