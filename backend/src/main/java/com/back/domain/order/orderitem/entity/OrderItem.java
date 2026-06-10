@@ -9,8 +9,6 @@ import lombok.*;
 @Table(name = "order_items")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 public class OrderItem extends BaseEntity {
 
     // 다른 패키지의 Order와 다대일 매핑 (리포지토리 없이 부모를 참조)
@@ -29,6 +27,13 @@ public class OrderItem extends BaseEntity {
 
     @Column(name = "product_name", nullable = false)
     private String productName; // 주문 당시 상품명 (스냅샷)
+
+    public OrderItem(Long productId, String productName, int productPrice, int quantity) {
+        this.productId = productId;
+        this.productName = productName;
+        this.productPrice = productPrice;
+        this.quantity = quantity;
+    }
 
     public void setOrder(Order order) {
         this.order = order;
