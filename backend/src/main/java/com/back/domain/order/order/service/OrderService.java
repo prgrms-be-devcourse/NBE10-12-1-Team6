@@ -52,19 +52,13 @@ public class OrderService {
         return LocalDateTime.of(date.plusDays(1), endTime);
     }
 
-    public List<Order> getOrdersByDay(LocalDateTime day) {
-        return getOrderBetweenDay(day, day);
-    }
-
-    public List<Order> getOrderBetweenDay(LocalDateTime start, LocalDateTime end) {
-        return orderRepository.findByCreateDateBetween(getStartOfDate(start), getEndOfDate(end));
-    }
-
     public Page<Order> getOrderBetweenDayWithPaging(
             LocalDateTime start, LocalDateTime end, List<OrderStatus> status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return orderRepository.findByCreateDateBetweenAndStatusIn(
-                getStartOfDate(start), getEndOfDate(end), status, pageable);
+                start.toLocalDate().atStartOfDay(),
+                end.toLocalDate().atTime(LocalTime.MAX),
+                status, pageable);
     }
 
     public List<Order> getOrdersByEmail(String email) {
@@ -138,7 +132,7 @@ public class OrderService {
     public void processOrder() {
 
         List<Order> orders = orderRepository.findByCreateDateBeforeAndStatus(
-                getEndOfDate(LocalDateTime.of(LocalDate.now(), LocalTime.MIN)), OrderStatus.BEFORE_PROCESSING);
+                getStartOfDate(LocalDateTime.now()), OrderStatus.BEFORE_PROCESSING);
 
         for (var order : orders) {
             order.changeStatus(OrderStatus.AFTER_PROCESSING);
